@@ -5,191 +5,275 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🏙️ City Tycool</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
-:root{--orange:#FF7A00;--gold:#FFD700;--panel:rgba(255,255,255,0.97);--shadow:0 4px 20px rgba(0,0,0,0.2);}
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Nunito',sans-serif;overflow:hidden;height:100vh;user-select:none;background:#87CEEB;}
-#game-wrap{width:100vw;height:100vh;position:relative;overflow:hidden;}
-#sky{position:absolute;top:0;left:0;right:0;height:42%;z-index:0;transition:background 1s;}
-#ground{position:absolute;bottom:0;left:0;right:0;height:60%;z-index:1;transition:background 1s;}
-#road{position:absolute;bottom:130px;left:0;right:0;height:55px;z-index:3;transition:background 1s;}
+
+/* BG */
+#sky{position:fixed;top:0;left:0;right:0;height:30%;z-index:0;background:linear-gradient(180deg,#5BA3D9,#ADE4FF);transition:background 1s;}
+#gnd{position:fixed;bottom:0;left:0;right:0;height:70%;z-index:0;background:linear-gradient(180deg,#7BC47F,#5DBB63 30%,#4CAF50);transition:background 1s;}
+#road{position:fixed;bottom:145px;left:0;right:0;height:46px;z-index:2;background:#7B7B7B;transition:background 1s;}
 #road::before{content:'';position:absolute;top:50%;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#FFD700 0,#FFD700 40px,transparent 40px,transparent 80px);transform:translateY(-50%);}
-.cloud{position:absolute;background:white;border-radius:50px;opacity:0.8;animation:floatCloud linear infinite;}
-@keyframes floatCloud{from{transform:translateX(-250px)}to{transform:translateX(110vw)}}
-#city-area{position:absolute;bottom:185px;left:0;right:0;min-height:280px;z-index:2;display:flex;align-items:flex-end;padding:0 8px;gap:8px;overflow-x:auto;overflow-y:visible;}
-#city-area::-webkit-scrollbar{display:none;}
-.bslot{position:relative;display:flex;flex-direction:column;align-items:center;flex-shrink:0;cursor:pointer;}
-.bbuilding{position:relative;border-radius:8px 8px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:4px;transition:all 0.2s;}
-.bslot:hover .bbuilding{filter:brightness(1.15);transform:translateY(-4px);}
-.broof{position:absolute;top:-18px;left:-4px;right:-4px;height:22px;border-radius:6px 6px 0 0;}
-.bwins{position:absolute;top:8px;left:6px;right:6px;display:grid;gap:3px;}
-.bwin{background:rgba(255,255,255,0.7);border-radius:2px;height:7px;}
-.bwin.lit{background:#FFE066;animation:blink 3s infinite;}
-@keyframes blink{0%,90%,100%{opacity:1}95%{opacity:0.3}}
-.bemoji{font-size:20px;position:relative;z-index:2;}
-.blabel{font-family:'Fredoka One',cursive;font-size:10px;color:white;text-shadow:1px 1px 2px rgba(0,0,0,0.6);margin-top:3px;text-align:center;line-height:1.2;}
-.bbadge{position:absolute;top:-10px;right:-8px;background:#FFD700;border:2px solid #FF8C00;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:800;color:#333;font-family:'Fredoka One',cursive;white-space:nowrap;}
-.btap{font-size:9px;color:rgba(255,255,255,0.8);text-align:center;margin-top:2px;font-weight:700;}
-.bempty{width:65px;height:75px;border:3px dashed #aaa;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.35;align-self:flex-end;flex-shrink:0;}
+.cloud{position:fixed;background:white;border-radius:50px;opacity:0.75;z-index:1;animation:cloudMove linear infinite;}
+@keyframes cloudMove{from{transform:translateX(-250px)}to{transform:translateX(110vw)}}
 
-/* UPGRADE POPUP */
-#upg-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.5);}
-#upg-overlay.show{display:flex;}
-#upg-card{background:white;border-radius:24px 24px 0 0;padding:20px 16px 24px;width:100%;max-width:480px;animation:slideUp 0.25s ease;}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.upg-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.upg-emoji{font-size:36px;}
-.upg-title{font-family:'Fredoka One',cursive;font-size:20px;color:#333;}
-.upg-sub{font-size:12px;color:#888;margin-bottom:14px;}
-.upg-stat{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
-.upg-stat-box{flex:1;background:#f8f8f8;border-radius:12px;padding:8px 10px;text-align:center;}
-.upg-stat-box .sv{font-family:'Fredoka One',cursive;font-size:16px;color:#333;}
-.upg-stat-box .sl{font-size:10px;color:#aaa;}
-.upg-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.upg-btn{background:linear-gradient(135deg,#44BB44,#2E8B2E);border:2px solid #1A5C1A;border-radius:14px;padding:12px 8px;color:white;font-family:'Fredoka One',cursive;font-size:13px;cursor:pointer;box-shadow:0 4px 0 #1A5C1A;transition:all 0.1s;text-align:center;line-height:1.3;}
-.upg-btn:disabled{background:linear-gradient(135deg,#ccc,#aaa);border-color:#888;box-shadow:0 4px 0 #888;cursor:not-allowed;opacity:0.7;}
-.upg-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #1A5C1A;}
-.upg-btn.max-btn{background:linear-gradient(135deg,#FFD700,#FF8C00);border-color:#e67e00;box-shadow:0 4px 0 #e67e00;}
-.upg-close{width:100%;background:#f0f0f0;border:none;border-radius:14px;padding:12px;font-family:'Fredoka One',cursive;font-size:15px;color:#888;cursor:pointer;}
-.upg-max-badge{text-align:center;font-family:'Fredoka One',cursive;font-size:18px;color:#FFD700;padding:10px;background:#fffbe6;border-radius:14px;margin-bottom:10px;}
+/* TRUCKS */
+#truckLayer{position:fixed;bottom:145px;left:0;right:0;height:46px;z-index:3;pointer-events:none;}
+.truck{position:absolute;font-size:22px;bottom:4px;animation:truckDrive linear;filter:drop-shadow(2px 2px 2px rgba(0,0,0,0.3));}
+@keyframes truckDrive{0%{left:-70px}100%{left:108%}}
+.coinPop{position:fixed;font-size:13px;pointer-events:none;animation:coinUp 1s ease-out forwards;z-index:20;white-space:nowrap;font-family:'Fredoka One',cursive;color:#FFD700;text-shadow:1px 1px 3px rgba(0,0,0,0.6);}
+@keyframes coinUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-60px);opacity:0}}
 
-#trucks{position:absolute;bottom:130px;left:0;right:0;height:55px;z-index:10;pointer-events:none;}
-.truck{position:absolute;font-size:26px;bottom:6px;animation:drive linear;filter:drop-shadow(2px 2px 2px rgba(0,0,0,0.3));}
-@keyframes drive{0%{left:-80px}100%{left:110%}}
-.fcoin{position:absolute;font-size:16px;pointer-events:none;animation:floatUp 1s ease-out forwards;z-index:200;white-space:nowrap;}
-@keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-70px) scale(1.2);opacity:0}}
+/* CITY AREA */
+#cityScroll{
+  position:fixed;
+  left:0;right:0;
+  bottom:191px;
+  height:calc(100vh - 191px - 88px);
+  z-index:4;
+  overflow-x:auto;
+  overflow-y:visible;
+}
+#cityScroll::-webkit-scrollbar{height:4px;}
+#cityScroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.4);border-radius:4px;}
+#cityInner{
+  display:inline-flex;
+  align-items:flex-end;
+  padding:0 10px;
+  gap:8px;
+  min-height:100%;
+}
 
-#hud{position:fixed;top:0;left:0;right:0;z-index:100;padding:8px 12px;display:flex;gap:8px;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.5),transparent);}
-.hbox{background:var(--panel);border-radius:18px;padding:5px 12px;display:flex;align-items:center;gap:5px;box-shadow:var(--shadow);border:2px solid rgba(255,255,255,0.8);}
-.hval{font-family:'Fredoka One',cursive;font-size:16px;color:#333;min-width:50px;}
-.hlbl{font-size:10px;color:#888;font-weight:700;}
-#zone-bar{position:fixed;top:58px;left:0;right:0;z-index:100;display:flex;justify-content:center;gap:8px;padding:4px;}
-.zone-btn{font-family:'Fredoka One',cursive;font-size:12px;padding:4px 14px;border-radius:20px;border:2px solid rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;color:white;text-shadow:1px 1px 2px rgba(0,0,0,0.5);}
-.zone-btn.active{transform:scale(1.1);border-color:white;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
-.zone-btn.locked{opacity:0.4;cursor:not-allowed;}
-#ips-badge{position:fixed;top:58px;right:12px;background:rgba(0,0,0,0.55);color:#FFD700;font-family:'Fredoka One',cursive;font-size:12px;padding:3px 10px;border-radius:20px;z-index:100;}
+/* BUILDING SLOT */
+.bSlot{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex-shrink:0;
+  position:relative;
+}
+.bBody{
+  position:relative;
+  border-radius:8px 8px 0 0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  padding-bottom:5px;
+  cursor:pointer;
+  transition:filter 0.15s;
+}
+.bSlot:hover .bBody{filter:brightness(1.1);}
+.bRoof{position:absolute;top:-16px;left:-4px;right:-4px;height:20px;border-radius:6px 6px 0 0;}
+.bWins{position:absolute;top:8px;left:5px;right:5px;display:grid;gap:2px;}
+.bWin{background:rgba(255,255,255,0.6);border-radius:2px;height:5px;}
+.bWin.lit{background:#FFE066;}
+.bEmoji{font-size:18px;position:relative;z-index:2;}
+.bBadge{
+  position:absolute;top:-10px;right:-8px;
+  background:#FFD700;border:2px solid #FF8C00;
+  border-radius:9px;padding:1px 5px;
+  font-size:9px;font-weight:800;color:#333;
+  font-family:'Fredoka One',cursive;white-space:nowrap;z-index:5;
+}
+.bLabel{
+  font-family:'Fredoka One',cursive;font-size:9px;
+  color:white;text-shadow:1px 1px 2px rgba(0,0,0,0.7);
+  margin-top:2px;text-align:center;line-height:1.2;
+}
+.bUpBtn{
+  margin-top:4px;
+  background:linear-gradient(135deg,#FF7A00,#FF5000);
+  border:2px solid #cc4000;
+  border-radius:10px;
+  padding:5px 6px;
+  color:white;
+  font-family:'Fredoka One',cursive;
+  font-size:10px;
+  cursor:pointer;
+  white-space:nowrap;
+  width:100%;
+  text-align:center;
+  box-shadow:0 3px 0 #992e00;
+}
+.bUpBtn:active:not([disabled]){transform:translateY(2px);box-shadow:0 1px 0 #992e00;}
+.bUpBtn[disabled]{
+  background:linear-gradient(135deg,#ccc,#aaa)!important;
+  border-color:#888!important;box-shadow:0 3px 0 #555!important;
+  cursor:not-allowed;opacity:0.65;
+}
+.bMaxBtn{
+  background:linear-gradient(135deg,#FFD700,#FFA000)!important;
+  border-color:#cc8000!important;box-shadow:0 3px 0 #996000!important;
+  cursor:default;
+}
+.bEmpty{
+  width:64px;height:68px;
+  border:3px dashed rgba(255,255,255,0.4);
+  border-radius:8px;display:flex;
+  align-items:center;justify-content:center;
+  font-size:24px;opacity:0.4;flex-shrink:0;
+}
 
-#bottom-wrap{position:fixed;bottom:0;left:0;right:0;z-index:100;}
-#tab-bar{display:flex;background:rgba(255,255,255,0.95);border-top:2px solid #eee;}
-.tab{flex:1;padding:8px 4px;text-align:center;cursor:pointer;font-family:'Fredoka One',cursive;font-size:12px;color:#888;border:none;background:none;transition:all 0.2s;}
-.tab.active{color:#9966FF;border-top:3px solid #9966FF;}
-#panels{background:var(--panel);border-radius:20px 20px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,0.15);max-height:200px;overflow-y:auto;}
-.panel{display:none;padding:12px;}
-.panel.active{display:block;}
-.panel-title{font-family:'Fredoka One',cursive;font-size:15px;color:#333;margin-bottom:8px;}
-.sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
-.sitem{background:linear-gradient(135deg,#f8f9ff,#eef0ff);border:2px solid #dde0ff;border-radius:12px;padding:8px 10px;display:flex;align-items:center;gap:7px;cursor:pointer;transition:all 0.15s;}
-.sitem:hover{transform:scale(1.02);border-color:#9966FF;}
-.sitem.cant{opacity:0.5;cursor:not-allowed;}
-.sitem.locked-item{opacity:0.4;cursor:not-allowed;background:linear-gradient(135deg,#eee,#ddd);}
-.semoji{font-size:22px;}
-.sinfo{flex:1;min-width:0;}
-.sname{font-family:'Fredoka One',cursive;font-size:12px;color:#333;}
-.sdesc{font-size:9px;color:#888;}
-.sprice{font-family:'Fredoka One',cursive;font-size:12px;color:var(--orange);white-space:nowrap;}
-.slocked{font-size:9px;color:#999;}
-.qitem{background:linear-gradient(135deg,#fff9e6,#fff3cc);border:2px solid #FFD700;border-radius:12px;padding:10px;margin-bottom:7px;}
-.qtitle{font-family:'Fredoka One',cursive;font-size:13px;color:#333;}
-.qdesc{font-size:11px;color:#888;margin:2px 0;}
-.qprog{background:#eee;border-radius:10px;height:8px;overflow:hidden;margin:4px 0;}
-.qfill{background:linear-gradient(90deg,#FFD700,#FF8C00);height:100%;border-radius:10px;transition:width 0.5s;}
-.qreward{font-family:'Fredoka One',cursive;font-size:11px;color:#FF8C00;}
-.qclaim{background:linear-gradient(135deg,#FFD700,#FF8C00);border:none;border-radius:8px;padding:4px 12px;font-family:'Fredoka One',cursive;font-size:12px;color:white;cursor:pointer;margin-top:4px;}
-.notif{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#FFD700,#FF8C00);border-radius:20px;padding:16px 32px;font-family:'Fredoka One',cursive;font-size:22px;color:white;text-shadow:2px 2px 4px rgba(0,0,0,0.3);z-index:500;box-shadow:0 10px 40px rgba(255,140,0,0.5);animation:popIn 2s ease forwards;text-align:center;pointer-events:none;}
-@keyframes popIn{0%{transform:translate(-50%,-50%) scale(0);opacity:0}20%{transform:translate(-50%,-50%) scale(1.08);opacity:1}80%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(0.8);opacity:0}}
-.sparkle{position:fixed;font-size:18px;pointer-events:none;animation:spk 0.9s ease-out forwards;z-index:400;}
+/* HUD TOP */
+#hud{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:7px 10px;display:flex;gap:6px;align-items:center;
+  background:linear-gradient(180deg,rgba(0,0,0,0.55),transparent);
+}
+.hBox{background:rgba(255,255,255,0.96);border-radius:16px;padding:4px 10px;display:flex;align-items:center;gap:5px;box-shadow:0 3px 12px rgba(0,0,0,0.2);}
+.hVal{font-family:'Fredoka One',cursive;font-size:14px;color:#333;min-width:44px;}
+.hLbl{font-size:9px;color:#888;font-weight:700;}
+
+/* TOOLBAR (zone + save + refresh + ips) */
+#toolbar{
+  position:fixed;top:52px;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  gap:6px;padding:3px 8px;
+}
+.zBtn{font-family:'Fredoka One',cursive;font-size:11px;padding:3px 11px;border-radius:18px;border:2px solid rgba(255,255,255,0.4);cursor:pointer;color:white;text-shadow:1px 1px 2px rgba(0,0,0,0.5);transition:all 0.2s;}
+.zBtn.act{transform:scale(1.08);border-color:white;box-shadow:0 3px 12px rgba(0,0,0,0.3);}
+.zBtn.lk{opacity:0.4;cursor:not-allowed;}
+#saveBtn{background:linear-gradient(135deg,#4CAF50,#2E7D32);border:2px solid #1B5E20;border-radius:18px;padding:3px 10px;color:white;font-family:'Fredoka One',cursive;font-size:11px;cursor:pointer;box-shadow:0 3px 0 #1B5E20;}
+#saveBtn:active{transform:translateY(2px);box-shadow:0 1px 0 #1B5E20;}
+#refreshBtn{background:linear-gradient(135deg,#2196F3,#1565C0);border:2px solid #0D47A1;border-radius:18px;padding:3px 10px;color:white;font-family:'Fredoka One',cursive;font-size:11px;cursor:pointer;box-shadow:0 3px 0 #0D47A1;}
+#refreshBtn:active{transform:translateY(2px);box-shadow:0 1px 0 #0D47A1;}
+#ipsBadge{background:rgba(0,0,0,0.6);color:#FFD700;font-family:'Fredoka One',cursive;font-size:11px;padding:3px 9px;border-radius:18px;white-space:nowrap;}
+
+/* BOTTOM PANEL */
+#bottomWrap{position:fixed;bottom:0;left:0;right:0;z-index:200;}
+#tabBar{display:flex;background:rgba(255,255,255,0.97);border-top:2px solid #eee;}
+.tabBtn{flex:1;padding:7px 4px;text-align:center;cursor:pointer;font-family:'Fredoka One',cursive;font-size:11px;color:#999;border:none;background:none;}
+.tabBtn.act{color:#9966FF;border-top:3px solid #9966FF;}
+#togBtn{padding:7px 10px;background:none;border:none;font-size:18px;cursor:pointer;border-left:2px solid #eee;}
+#panelWrap{background:rgba(255,255,255,0.97);border-radius:18px 18px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,0.12);overflow:hidden;transition:max-height 0.3s ease;}
+#panelWrap.open{max-height:158px;overflow-y:auto;}
+#panelWrap.closed{max-height:0;}
+.panel{display:none;padding:8px 12px;}
+.panel.act{display:block;}
+.panelTitle{font-family:'Fredoka One',cursive;font-size:12px;color:#666;margin-bottom:6px;}
+
+/* SHOP GRID */
+.shopGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;}
+.shopItem{background:#f8f9ff;border:2px solid #dde0ff;border-radius:10px;padding:6px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:transform 0.1s;}
+.shopItem:active{transform:scale(0.97);}
+.shopItem.cantBuy{opacity:0.5;cursor:not-allowed;}
+.shopItem.lockedItem{opacity:0.35;cursor:not-allowed;background:#eee;}
+.shopEmoji{font-size:18px;}
+.shopName{font-family:'Fredoka One',cursive;font-size:11px;color:#333;}
+.shopDesc{font-size:9px;color:#aaa;}
+.shopPrice{font-family:'Fredoka One',cursive;font-size:11px;color:#FF7A00;white-space:nowrap;}
+.shopLocked{font-size:9px;color:#bbb;}
+
+/* QUEST */
+.questItem{background:#fffbe6;border:2px solid #FFD700;border-radius:10px;padding:8px;margin-bottom:5px;}
+.questTitle{font-family:'Fredoka One',cursive;font-size:12px;color:#333;}
+.questDesc{font-size:10px;color:#999;margin:2px 0;}
+.questBar{background:#eee;border-radius:8px;height:6px;overflow:hidden;margin:3px 0;}
+.questFill{background:linear-gradient(90deg,#FFD700,#FF8C00);height:100%;border-radius:8px;transition:width 0.5s;}
+.questReward{font-family:'Fredoka One',cursive;font-size:10px;color:#FF8C00;}
+.questClaim{background:linear-gradient(135deg,#FFD700,#FF8C00);border:none;border-radius:8px;padding:3px 10px;font-family:'Fredoka One',cursive;font-size:11px;color:white;cursor:pointer;margin-top:3px;}
+
+/* NOTIF */
+.notif{position:fixed;top:44%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#FFD700,#FF8C00);border-radius:18px;padding:12px 26px;font-family:'Fredoka One',cursive;font-size:20px;color:white;z-index:500;box-shadow:0 8px 30px rgba(255,140,0,0.5);animation:notifPop 2s ease forwards;text-align:center;pointer-events:none;}
+@keyframes notifPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}15%{transform:translate(-50%,-50%) scale(1.05);opacity:1}75%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(0.9);opacity:0}}
+.sparkle{position:fixed;font-size:16px;pointer-events:none;animation:spk 0.9s ease-out forwards;z-index:400;}
 @keyframes spk{0%{transform:translate(0,0) scale(0);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(1);opacity:0}}
-#login{position:fixed;inset:0;z-index:999;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
-#login h1{font-family:'Fredoka One',cursive;font-size:44px;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,0.6);}
-#gbtn{background:white;border:none;border-radius:16px;padding:13px 26px;font-family:'Fredoka One',cursive;font-size:17px;color:#333;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.4);transition:all 0.2s;}
-#gbtn:hover{transform:scale(1.05);}
-#ubar{position:fixed;top:8px;right:10px;z-index:200;display:none;align-items:center;gap:6px;}
-#uavatar{width:28px;height:28px;border-radius:50%;border:2px solid white;}
-#uname{font-family:'Fredoka One',cursive;font-size:12px;color:white;text-shadow:1px 1px 3px rgba(0,0,0,0.6);}
-#logoutbtn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:2px 7px;color:white;font-size:10px;cursor:pointer;}
-#saveindicator{position:fixed;bottom:215px;right:12px;background:rgba(0,170,0,0.85);color:white;font-family:'Fredoka One',cursive;font-size:11px;padding:3px 10px;border-radius:20px;z-index:150;display:none;}
+
+/* SAVE INDICATOR */
+#saveMsg{position:fixed;bottom:205px;right:10px;background:rgba(0,160,0,0.9);color:white;font-family:'Fredoka One',cursive;font-size:11px;padding:3px 10px;border-radius:18px;z-index:300;display:none;}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;z-index:999;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+#loginScreen h1{font-family:'Fredoka One',cursive;font-size:42px;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,0.6);}
+#googleBtn{background:white;border:none;border-radius:16px;padding:12px 24px;font-family:'Fredoka One',cursive;font-size:16px;color:#333;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.4);transition:all 0.2s;}
+#googleBtn:hover{transform:scale(1.05);}
+#userBar{position:fixed;top:7px;right:8px;z-index:300;display:none;align-items:center;gap:5px;}
+#userAvatar{width:26px;height:26px;border-radius:50%;border:2px solid white;}
+#userName{font-family:'Fredoka One',cursive;font-size:11px;color:white;text-shadow:1px 1px 3px rgba(0,0,0,0.6);}
+#logoutBtn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:2px 6px;color:white;font-size:10px;cursor:pointer;}
 </style>
 </head>
 <body>
 
-<div id="login">
-  <div style="font-size:72px">🏙️</div>
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div style="font-size:68px">🏙️</div>
   <h1>City Tycool</h1>
-  <p style="color:#aaa">สร้างอาณาจักรธุรกิจของคุณ!</p>
-  <button id="gbtn"><img src="https://www.google.com/favicon.ico" style="width:22px">เข้าสู่ระบบด้วย Google</button>
+  <p style="color:#aaa;font-size:14px">สร้างอาณาจักรธุรกิจของคุณ!</p>
+  <button id="googleBtn"><img src="https://www.google.com/favicon.ico" style="width:20px"> เข้าสู่ระบบด้วย Google</button>
   <p style="font-size:11px;color:#555">เซฟข้อมูลอัตโนมัติ ✨</p>
 </div>
 
-<div id="ubar">
-  <img id="uavatar" src="" alt="">
-  <span id="uname"></span>
-  <button id="logoutbtn">ออก</button>
+<!-- USER BAR -->
+<div id="userBar">
+  <img id="userAvatar" src="" alt="">
+  <span id="userName"></span>
+  <button id="logoutBtn">ออก</button>
 </div>
-<div id="saveindicator">💾 บันทึกแล้ว!</div>
+<div id="saveMsg">💾 บันทึกแล้ว!</div>
 
-<!-- UPGRADE POPUP -->
-<div id="upg-overlay" onclick="closeUpgradePopup(event)">
-  <div id="upg-card">
-    <div class="upg-header">
-      <div class="upg-emoji" id="upg-emoji">🏭</div>
-      <div>
-        <div class="upg-title" id="upg-title">อาคาร</div>
-        <div style="font-size:11px;color:#aaa" id="upg-zone">เมืองเล็ก</div>
+<!-- GAME BG -->
+<div id="sky"></div>
+<div id="gnd"></div>
+<div id="road"></div>
+<div id="truckLayer"></div>
+
+<!-- CITY -->
+<div id="cityScroll"><div id="cityInner"></div></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hBox">
+    <span style="font-size:17px">💰</span>
+    <div><div class="hVal" id="hMoney">0</div><div class="hLbl">เหรียญ</div></div>
+  </div>
+  <div class="hBox">
+    <span style="font-size:17px">⭐</span>
+    <div><div class="hVal" id="hLevel">1</div><div class="hLbl">เลเวล</div></div>
+  </div>
+  <div class="hBox" style="flex:1">
+    <span style="font-size:14px">📈</span>
+    <div style="flex:1;margin-left:4px">
+      <div style="font-size:9px;color:#888;font-weight:700">EXP</div>
+      <div style="background:#eee;border-radius:6px;height:6px;margin-top:2px;overflow:hidden">
+        <div id="expBar" style="background:linear-gradient(90deg,#9966FF,#FF66CC);height:100%;width:0%;border-radius:6px;transition:width 0.3s"></div>
       </div>
     </div>
-    <div class="upg-sub" id="upg-sub">รายได้ปัจจุบัน</div>
-    <div class="upg-stat" id="upg-stat"></div>
-    <div id="upg-max-badge" class="upg-max-badge" style="display:none">✨ อัพเกรดสูงสุดแล้ว! MAX LEVEL!</div>
-    <div class="upg-btns" id="upg-btns"></div>
-    <button class="upg-close" onclick="document.getElementById('upg-overlay').classList.remove('show')">✕ ปิด</button>
   </div>
 </div>
 
-<div id="game-wrap">
-  <div id="sky"></div>
-  <div id="ground"></div>
-  <div id="road"></div>
-  <div id="city-area"></div>
-  <div id="trucks"></div>
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <button id="saveBtn" onclick="manualSave()">💾 เซฟ</button>
+  <button class="zBtn act" style="background:linear-gradient(135deg,#4CAF50,#2E7D32)" id="z0" onclick="switchZone(0)">🌿 เล็ก</button>
+  <button class="zBtn lk" style="background:linear-gradient(135deg,#2196F3,#1565C0)" id="z1" onclick="switchZone(1)">🏙️ Lv.20</button>
+  <button class="zBtn lk" style="background:linear-gradient(135deg,#9C27B0,#6A1B9A)" id="z2" onclick="switchZone(2)">🌆 Lv.55</button>
+  <span id="ipsBadge">+0/วิ</span>
+  <button id="refreshBtn" onclick="location.reload()">🔄 รีเฟรช</button>
 </div>
 
-<div id="hud">
-  <div class="hbox"><span style="font-size:18px">💰</span><div><div class="hval" id="hMoney">0</div><div class="hlbl">เหรียญ</div></div></div>
-  <div class="hbox"><span style="font-size:18px">⭐</span><div><div class="hval" id="hLevel">1</div><div class="hlbl">เลเวล</div></div></div>
-  <div class="hbox" style="flex:1"><span style="font-size:16px">📈</span>
-    <div style="flex:1;margin-left:4px">
-      <div style="font-size:9px;color:#888;font-weight:700">EXP ถัดไป</div>
-      <div style="background:#eee;border-radius:8px;height:7px;margin-top:2px;overflow:hidden"><div id="expbar" style="background:linear-gradient(90deg,#9966FF,#FF66CC);height:100%;width:0%;border-radius:8px;transition:width 0.3s"></div></div>
-    </div>
-  </div>
-</div>
-
-<div id="zone-bar">
-  <button class="zone-btn active" style="background:linear-gradient(135deg,#4CAF50,#2E7D32)" id="zbtn0" onclick="switchZone(0)">🌿 เมืองเล็ก</button>
-  <button class="zone-btn locked" style="background:linear-gradient(135deg,#2196F3,#1565C0)" id="zbtn1" onclick="switchZone(1)">🏙️ เมืองใหญ่</button>
-  <button class="zone-btn locked" style="background:linear-gradient(135deg,#9C27B0,#6A1B9A)" id="zbtn2" onclick="switchZone(2)">🌆 มหานคร</button>
-</div>
-<div id="ips-badge">+0 💰/วิ</div>
-
-<div id="bottom-wrap">
-  <div id="panels">
-    <div class="panel active" id="panel-shop">
-      <div class="panel-title">🏗️ ซื้ออาคารใหม่</div>
-      <div class="sgrid" id="shopgrid"></div>
+<!-- BOTTOM -->
+<div id="bottomWrap">
+  <div id="panelWrap" class="open">
+    <div class="panel act" id="panel-shop">
+      <div class="panelTitle">🏗️ ซื้ออาคารใหม่</div>
+      <div class="shopGrid" id="shopGrid"></div>
     </div>
     <div class="panel" id="panel-quest">
-      <div class="panel-title">📋 ภารกิจ</div>
-      <div id="questlist"></div>
+      <div class="panelTitle">📋 ภารกิจ</div>
+      <div id="questList"></div>
     </div>
     <div class="panel" id="panel-info">
-      <div class="panel-title">📊 สถิติ</div>
-      <div id="statsinfo" style="font-size:12px;color:#555;line-height:1.8"></div>
+      <div class="panelTitle">📊 สถิติ</div>
+      <div id="statsText" style="font-size:11px;color:#555;line-height:1.9"></div>
     </div>
   </div>
-  <div id="tab-bar">
-    <button class="tab active" onclick="switchTab('shop',this)">🏗️ ซื้อ</button>
-    <button class="tab" onclick="switchTab('quest',this)">📋 ภารกิจ</button>
-    <button class="tab" onclick="switchTab('info',this)">📊 สถิติ</button>
+  <div id="tabBar">
+    <button class="tabBtn act" onclick="switchTab('shop',this)">🏗️ ซื้อ</button>
+    <button class="tabBtn" onclick="switchTab('quest',this)">📋 ภารกิจ</button>
+    <button class="tabBtn" onclick="switchTab('info',this)">📊 สถิติ</button>
+    <button id="togBtn" onclick="togglePanel()">🔼</button>
   </div>
 </div>
 
@@ -197,6 +281,7 @@ body{font-family:'Nunito',sans-serif;overflow:hidden;height:100vh;user-select:no
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
+// ===== FIREBASE =====
 firebase.initializeApp({
   apiKey:"AIzaSyASRB9Ved_Va_OoAXIpc1glavQ-cMmAs74",
   authDomain:"book-classic.firebaseapp.com",
@@ -205,361 +290,474 @@ firebase.initializeApp({
   messagingSenderId:"402719934660",
   appId:"1:402719934660:web:b59916175365e60637a191"
 });
-const auth=firebase.auth(),db=firebase.firestore();
-let currentUser=null,gameStarted=false,saveTimeout=null;
+const auth=firebase.auth(), db=firebase.firestore();
+let currentUser=null, gameStarted=false, autoSaveTimer=null;
 
-document.getElementById('gbtn').onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message));
-document.getElementById('logoutbtn').onclick=()=>auth.signOut().then(()=>location.reload());
+document.getElementById('googleBtn').onclick=()=>
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message));
+document.getElementById('logoutBtn').onclick=()=>auth.signOut().then(()=>location.reload());
 
 auth.onAuthStateChanged(async user=>{
   if(user){
     currentUser=user;
-    document.getElementById('login').style.display='none';
-    document.getElementById('ubar').style.display='flex';
-    document.getElementById('uavatar').src=user.photoURL||'';
-    document.getElementById('uname').textContent=user.displayName?.split(' ')[0]||'ผู้เล่น';
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('userBar').style.display='flex';
+    document.getElementById('userAvatar').src=user.photoURL||'';
+    document.getElementById('userName').textContent=user.displayName?.split(' ')[0]||'ผู้เล่น';
     if(!gameStarted){await loadGame();startGame();gameStarted=true;}
-  }else document.getElementById('login').style.display='flex';
+  } else {
+    document.getElementById('loginScreen').style.display='flex';
+  }
 });
 
-async function saveGame(){
+async function saveGame(showMsg=true){
   if(!currentUser)return;
   try{
     await db.collection('saves').doc(currentUser.uid).set({
-      money:G.money,exp:G.exp,level:G.level,
-      zones:G.zones.map(z=>({buildings:z.buildings,unlocked:z.unlocked})),
+      money:G.money, exp:G.exp, level:G.level,
+      zones:G.zones.map(z=>({
+        unlocked:z.unlocked,
+        buildings:z.buildings.map(b=>({id:b.id,lv:b.lv}))
+      })),
       quests:G.quests.map(q=>({id:q.id,progress:q.progress,claimed:q.claimed})),
-      totalEarned:G.totalEarned,totalBuilt:G.totalBuilt,savedAt:new Date().toISOString()
+      totalEarned:G.totalEarned, totalBuilt:G.totalBuilt,
+      savedAt:new Date().toISOString()
     });
-    const s=document.getElementById('saveindicator');
-    s.style.display='block';setTimeout(()=>s.style.display='none',2000);
-  }catch(e){console.error(e);}
+    if(showMsg){
+      const s=document.getElementById('saveMsg');
+      s.style.display='block';
+      setTimeout(()=>s.style.display='none',2000);
+    }
+  }catch(e){console.error('Save error:',e);}
 }
+
 async function loadGame(){
   if(!currentUser)return;
   try{
     const snap=await db.collection('saves').doc(currentUser.uid).get();
-    if(snap.exists){
-      const d=snap.data();
-      G.money=d.money||100;G.exp=d.exp||0;G.level=d.level||1;
-      G.totalEarned=d.totalEarned||0;G.totalBuilt=d.totalBuilt||0;
-      if(d.zones){d.zones.forEach((z,i)=>{if(G.zones[i]){G.zones[i].buildings=z.buildings||[];G.zones[i].unlocked=z.unlocked??false;}});}
-      G.zones[0].unlocked=true;
-      if(d.quests){d.quests.forEach(sq=>{const q=G.quests.find(x=>x.id===sq.id);if(q){q.progress=sq.progress||0;q.claimed=sq.claimed||false;}});}
-      showNotif('🔄 โหลดข้อมูลแล้ว!');
+    if(!snap.exists)return;
+    const d=snap.data();
+    G.money=d.money||100; G.exp=d.exp||0; G.level=d.level||1;
+    G.totalEarned=d.totalEarned||0; G.totalBuilt=d.totalBuilt||0;
+    if(d.zones){
+      d.zones.forEach((z,i)=>{
+        if(!G.zones[i])return;
+        G.zones[i].unlocked=z.unlocked??false;
+        G.zones[i].buildings=(z.buildings||[]).map(b=>({
+          id: b.id||b.type,   // รองรับ format เก่า
+          lv: b.lv||b.level||1
+        })).filter(b=>SHOPS.some(s=>s.id===b.id));
+      });
     }
-  }catch(e){console.error(e);}
+    G.zones[0].unlocked=true;
+    if(d.quests){
+      d.quests.forEach(sq=>{
+        const q=G.quests.find(x=>x.id===sq.id);
+        if(q){q.progress=sq.progress||0;q.claimed=sq.claimed||false;}
+      });
+    }
+    showNotif('🔄 โหลดข้อมูลแล้ว!');
+  }catch(e){console.error('Load error:',e);}
 }
-function scheduleSave(){if(saveTimeout)clearTimeout(saveTimeout);saveTimeout=setTimeout(saveGame,3000);}
 
-// DATA
-const SHOP_TYPES=[
-  {id:'farm',name:'🌾 ฟาร์ม',emoji:'🌾',zone:0,unlockLv:1,baseCost:50,incomeBase:3,color:'#8BC34A',truck:'🚜',truckMs:5000,desc:'ผลิตพืชผัก',maxLv:20},
-  {id:'bakery',name:'🥖 เบเกอรี่',emoji:'🥖',zone:0,unlockLv:2,baseCost:120,incomeBase:7,color:'#FF9800',truck:'🚐',truckMs:6000,desc:'ขายขนมปัง',maxLv:20},
-  {id:'woodmill',name:'🪵 โรงเลื่อย',emoji:'🪵',zone:0,unlockLv:3,baseCost:200,incomeBase:12,color:'#795548',truck:'🚛',truckMs:7000,desc:'แปรรูปไม้',maxLv:20},
-  {id:'fishmarket',name:'🐟 ตลาดปลา',emoji:'🐟',zone:0,unlockLv:5,baseCost:350,incomeBase:18,color:'#03A9F4',truck:'🚌',truckMs:7500,desc:'ขายอาหารทะเล',maxLv:20},
-  {id:'smithy',name:'⚒️ ช่างตีเหล็ก',emoji:'⚒️',zone:0,unlockLv:8,baseCost:600,incomeBase:28,color:'#607D8B',truck:'🚚',truckMs:8000,desc:'ผลิตเครื่องมือ',maxLv:20},
-  {id:'tavern',name:'🍺 โรงเหล้า',emoji:'🍺',zone:0,unlockLv:10,baseCost:900,incomeBase:40,color:'#FF5722',truck:'🚐',truckMs:8000,desc:'ขายเครื่องดื่ม',maxLv:20},
-  {id:'ranch',name:'🐄 ฟาร์มโค',emoji:'🐄',zone:0,unlockLv:12,baseCost:1400,incomeBase:58,color:'#4CAF50',truck:'🚜',truckMs:8500,desc:'เลี้ยงสัตว์',maxLv:20},
-  {id:'mine',name:'⛏️ เหมืองแร่',emoji:'⛏️',zone:0,unlockLv:15,baseCost:2200,incomeBase:85,color:'#9E9E9E',truck:'🚛',truckMs:9000,desc:'ขุดแร่ธาตุ',maxLv:20},
-  {id:'factory',name:'🏭 โรงงาน',emoji:'🏭',zone:1,unlockLv:20,baseCost:4000,incomeBase:140,color:'#FF8C42',truck:'🚚',truckMs:6000,desc:'ผลิตสินค้าอุตสาหกรรม',maxLv:20},
-  {id:'bank',name:'🏦 ธนาคาร',emoji:'🏦',zone:1,unlockLv:22,baseCost:7000,incomeBase:220,color:'#DAA520',truck:'🚌',truckMs:6500,desc:'บริการทางการเงิน',maxLv:20},
-  {id:'mall',name:'🏬 ห้างสรรพสินค้า',emoji:'🏬',zone:1,unlockLv:25,baseCost:12000,incomeBase:350,color:'#E91E63',truck:'🚐',truckMs:7000,desc:'ศูนย์การค้าใหญ่',maxLv:20},
-  {id:'hospital',name:'🏥 โรงพยาบาล',emoji:'🏥',zone:1,unlockLv:28,baseCost:20000,incomeBase:520,color:'#F44336',truck:'🚑',truckMs:7000,desc:'บริการสุขภาพ',maxLv:20},
-  {id:'hotel',name:'🏨 โรงแรม',emoji:'🏨',zone:1,unlockLv:32,baseCost:35000,incomeBase:780,color:'#9C27B0',truck:'🚌',truckMs:7500,desc:'ที่พักหรูหรา',maxLv:20},
-  {id:'stadium',name:'🏟️ สนามกีฬา',emoji:'🏟️',zone:1,unlockLv:36,baseCost:55000,incomeBase:1100,color:'#00BCD4',truck:'🚌',truckMs:8000,desc:'จัดงานกีฬา',maxLv:20},
-  {id:'airport',name:'✈️ สนามบิน',emoji:'✈️',zone:1,unlockLv:42,baseCost:90000,incomeBase:1600,color:'#3F51B5',truck:'🚌',truckMs:8000,desc:'ขนส่งทางอากาศ',maxLv:20},
-  {id:'powerplant',name:'⚡ โรงไฟฟ้า',emoji:'⚡',zone:1,unlockLv:48,baseCost:150000,incomeBase:2400,color:'#FFC107',truck:'🚛',truckMs:8500,desc:'ผลิตพลังงาน',maxLv:20},
-  {id:'spaceport',name:'🚀 ท่าอวกาศ',emoji:'🚀',zone:2,unlockLv:55,baseCost:300000,incomeBase:4000,color:'#1A237E',truck:'🚀',truckMs:5000,desc:'ขนส่งอวกาศ',maxLv:20},
-  {id:'casino',name:'🎰 คาสิโน',emoji:'🎰',zone:2,unlockLv:60,baseCost:500000,incomeBase:6500,color:'#880E4F',truck:'🚌',truckMs:5500,desc:'บันเทิงระดับโลก',maxLv:20},
-  {id:'research',name:'🔬 ศูนย์วิจัย',emoji:'🔬',zone:2,unlockLv:65,baseCost:800000,incomeBase:10000,color:'#00695C',truck:'🚐',truckMs:6000,desc:'วิจัยและพัฒนา',maxLv:20},
-  {id:'arcology',name:'🌐 อาคารอัจฉริยะ',emoji:'🌐',zone:2,unlockLv:72,baseCost:1500000,incomeBase:16000,color:'#4527A0',truck:'🚛',truckMs:6000,desc:'เมืองในอาคาร',maxLv:20},
-  {id:'fusion',name:'☢️ โรงงานฟิวชัน',emoji:'☢️',zone:2,unlockLv:80,baseCost:3000000,incomeBase:28000,color:'#B71C1C',truck:'🚌',truckMs:6500,desc:'พลังงานนิวเคลียร์',maxLv:20},
-  {id:'quantum',name:'💎 ควอนตัมคอม',emoji:'💎',zone:2,unlockLv:90,baseCost:6000000,incomeBase:50000,color:'#006064',truck:'🚐',truckMs:7000,desc:'เทคโนโลยีแห่งอนาคต',maxLv:20},
-  {id:'dyson',name:'🌟 ไดสัน สเฟียร์',emoji:'🌟',zone:2,unlockLv:100,baseCost:20000000,incomeBase:120000,color:'#E65100',truck:'🚀',truckMs:5000,desc:'เก็บเกี่ยวพลังงานดาว',maxLv:20},
+function scheduleSave(){
+  if(autoSaveTimer)clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>saveGame(false),5000);
+}
+function manualSave(){saveGame(true);}
+
+// ===== GAME DATA =====
+const SHOPS=[
+  {id:'farm',    name:'🌾 ฟาร์ม',        e:'🌾',z:0,lv:1, bc:50,     ib:3,     cl:'#8BC34A',tr:'🚜',ms:8000, ds:'ผลิตพืชผัก',mx:20},
+  {id:'bakery',  name:'🥖 เบเกอรี่',     e:'🥖',z:0,lv:2, bc:120,    ib:7,     cl:'#FF9800',tr:'🚐',ms:9000, ds:'ขายขนมปัง',mx:20},
+  {id:'woodmill',name:'🪵 โรงเลื่อย',    e:'🪵',z:0,lv:3, bc:200,    ib:12,    cl:'#795548',tr:'🚛',ms:10000,ds:'แปรรูปไม้',mx:20},
+  {id:'fishmarket',name:'🐟 ตลาดปลา',   e:'🐟',z:0,lv:5, bc:350,    ib:18,    cl:'#03A9F4',tr:'🚌',ms:10000,ds:'อาหารทะเล',mx:20},
+  {id:'smithy',  name:'⚒️ ช่างตีเหล็ก', e:'⚒️',z:0,lv:8, bc:600,    ib:28,    cl:'#607D8B',tr:'🚚',ms:11000,ds:'ผลิตเครื่องมือ',mx:20},
+  {id:'tavern',  name:'🍺 โรงเหล้า',     e:'🍺',z:0,lv:10,bc:900,    ib:40,    cl:'#FF5722',tr:'🚐',ms:11000,ds:'เครื่องดื่ม',mx:20},
+  {id:'ranch',   name:'🐄 ฟาร์มโค',      e:'🐄',z:0,lv:12,bc:1400,   ib:58,    cl:'#4CAF50',tr:'🚜',ms:12000,ds:'เลี้ยงสัตว์',mx:20},
+  {id:'mine',    name:'⛏️ เหมือง',       e:'⛏️',z:0,lv:15,bc:2200,   ib:85,    cl:'#9E9E9E',tr:'🚛',ms:12000,ds:'ขุดแร่',mx:20},
+  {id:'factory', name:'🏭 โรงงาน',       e:'🏭',z:1,lv:20,bc:4000,   ib:140,   cl:'#FF8C42',tr:'🚚',ms:8000, ds:'สินค้าอุตฯ',mx:20},
+  {id:'bank',    name:'🏦 ธนาคาร',       e:'🏦',z:1,lv:22,bc:7000,   ib:220,   cl:'#DAA520',tr:'🚌',ms:9000, ds:'การเงิน',mx:20},
+  {id:'mall',    name:'🏬 ห้าง',          e:'🏬',z:1,lv:25,bc:12000,  ib:350,   cl:'#E91E63',tr:'🚐',ms:9000, ds:'ศูนย์การค้า',mx:20},
+  {id:'hospital',name:'🏥 โรงพยาบาล',   e:'🏥',z:1,lv:28,bc:20000,  ib:520,   cl:'#F44336',tr:'🚑',ms:10000,ds:'สุขภาพ',mx:20},
+  {id:'hotel',   name:'🏨 โรงแรม',       e:'🏨',z:1,lv:32,bc:35000,  ib:780,   cl:'#9C27B0',tr:'🚌',ms:10000,ds:'ที่พักหรู',mx:20},
+  {id:'stadium', name:'🏟️ สนามกีฬา',    e:'🏟️',z:1,lv:36,bc:55000,  ib:1100,  cl:'#00BCD4',tr:'🚌',ms:11000,ds:'กีฬา',mx:20},
+  {id:'airport', name:'✈️ สนามบิน',      e:'✈️',z:1,lv:42,bc:90000,  ib:1600,  cl:'#3F51B5',tr:'🚌',ms:11000,ds:'ขนส่งอากาศ',mx:20},
+  {id:'powerplant',name:'⚡ โรงไฟฟ้า',  e:'⚡',z:1,lv:48,bc:150000, ib:2400,  cl:'#FFC107',tr:'🚛',ms:12000,ds:'พลังงาน',mx:20},
+  {id:'spaceport',name:'🚀 ท่าอวกาศ',   e:'🚀',z:2,lv:55,bc:300000, ib:4000,  cl:'#1A237E',tr:'🚀',ms:7000, ds:'อวกาศ',mx:20},
+  {id:'casino',  name:'🎰 คาสิโน',       e:'🎰',z:2,lv:60,bc:500000, ib:6500,  cl:'#880E4F',tr:'🚌',ms:7000, ds:'บันเทิง',mx:20},
+  {id:'research',name:'🔬 วิจัย',         e:'🔬',z:2,lv:65,bc:800000, ib:10000, cl:'#00695C',tr:'🚐',ms:8000, ds:'R&D',mx:20},
+  {id:'arcology',name:'🌐 อาคารอัจฉริยะ',e:'🌐',z:2,lv:72,bc:1500000,ib:16000, cl:'#4527A0',tr:'🚛',ms:8000, ds:'เมืองในอาคาร',mx:20},
+  {id:'fusion',  name:'☢️ ฟิวชัน',       e:'☢️',z:2,lv:80,bc:3000000,ib:28000, cl:'#B71C1C',tr:'🚌',ms:8000, ds:'พลังงานนิวเคลียร์',mx:20},
+  {id:'quantum', name:'💎 ควอนตัม',      e:'💎',z:2,lv:90,bc:6000000,ib:50000, cl:'#006064',tr:'🚐',ms:9000, ds:'เทคโนโลยีอนาคต',mx:20},
+  {id:'dyson',   name:'🌟 ไดสัน สเฟียร์',e:'🌟',z:2,lv:100,bc:20000000,ib:120000,cl:'#E65100',tr:'🚀',ms:6000,ds:'พลังงานดาว',mx:20},
 ];
+
 const ZONES=[
-  {id:0,name:'🌿 เมืองเล็ก',unlockLv:1,sky:'linear-gradient(180deg,#6BB8E8,#ADE4FF)',ground:'linear-gradient(180deg,#7BC47F,#5DBB63 30%,#4CAF50)',road:'#7B7B7B'},
-  {id:1,name:'🏙️ เมืองใหญ่',unlockLv:20,sky:'linear-gradient(180deg,#546E7A,#78909C)',ground:'linear-gradient(180deg,#616161,#424242 30%,#212121)',road:'#424242'},
-  {id:2,name:'🌆 มหานคร',unlockLv:55,sky:'linear-gradient(180deg,#1A237E,#283593)',ground:'linear-gradient(180deg,#1B1B2F,#16213e 30%,#0f3460)',road:'#1B1B2F'},
-];
-const QUEST_DEFS=[
-  {id:'q_earn1',title:'💰 นักสะสม I',desc:'หาเงิน 1,000 เหรียญ',type:'earn',target:1000,reward:200,expReward:50},
-  {id:'q_earn2',title:'💰 นักสะสม II',desc:'หาเงิน 50,000 เหรียญ',type:'earn',target:50000,reward:5000,expReward:200},
-  {id:'q_earn3',title:'💰 เศรษฐี',desc:'หาเงิน 1,000,000 เหรียญ',type:'earn',target:1000000,reward:50000,expReward:500},
-  {id:'q_build1',title:'🏗️ ผู้สร้าง I',desc:'สร้างอาคาร 3 หลัง',type:'build',target:3,reward:300,expReward:80},
-  {id:'q_build2',title:'🏗️ ผู้สร้าง II',desc:'สร้างอาคาร 10 หลัง',type:'build',target:10,reward:2000,expReward:300},
-  {id:'q_build3',title:'🏗️ สถาปนิก',desc:'สร้างอาคาร 25 หลัง',type:'build',target:25,reward:20000,expReward:800},
-  {id:'q_lv10',title:'⭐ นักธุรกิจ',desc:'ถึงเลเวล 10',type:'level',target:10,reward:1000,expReward:100},
-  {id:'q_lv25',title:'⭐ มือโปร',desc:'ถึงเลเวล 25',type:'level',target:25,reward:10000,expReward:400},
-  {id:'q_lv50',title:'⭐ อัจฉริยะ',desc:'ถึงเลเวล 50',type:'level',target:50,reward:200000,expReward:2000},
-  {id:'q_zone1',title:'🏙️ ขยายเมือง',desc:'ปลดล็อคเมืองใหญ่',type:'zone',target:1,reward:5000,expReward:500},
-  {id:'q_zone2',title:'🌆 มหานคร',desc:'ปลดล็อคมหานคร',type:'zone',target:2,reward:100000,expReward:2000},
+  {nm:'🌿 เมืองเล็ก',ulv:1, sky:'linear-gradient(180deg,#5BA3D9,#ADE4FF)',gnd:'linear-gradient(180deg,#7BC47F,#5DBB63 30%,#4CAF50)',rd:'#7B7B7B'},
+  {nm:'🏙️ เมืองใหญ่',ulv:20,sky:'linear-gradient(180deg,#546E7A,#78909C)',gnd:'linear-gradient(180deg,#616161,#424242 30%,#212121)',rd:'#424242'},
+  {nm:'🌆 มหานคร',   ulv:55,sky:'linear-gradient(180deg,#1A237E,#283593)',gnd:'linear-gradient(180deg,#1B1B2F,#16213e 30%,#0f3460)',rd:'#1B1B2F'},
 ];
 
-const G={money:100,exp:0,level:1,currentZone:0,totalEarned:0,totalBuilt:0,
-  zones:[{id:0,unlocked:true,buildings:[]},{id:1,unlocked:false,buildings:[]},{id:2,unlocked:false,buildings:[]}],
-  quests:QUEST_DEFS.map(q=>({...q,progress:0,claimed:false})),ips:0,lastTick:Date.now()};
+const QUESTS=[
+  {id:'q1',t:'💰 สะสม I',   d:'หาเงิน 1K',    tp:'earn', tg:1000,    rw:200,    xp:50},
+  {id:'q2',t:'💰 สะสม II',  d:'หาเงิน 50K',   tp:'earn', tg:50000,   rw:5000,   xp:200},
+  {id:'q3',t:'💰 เศรษฐี',   d:'หาเงิน 1M',    tp:'earn', tg:1000000, rw:50000,  xp:500},
+  {id:'q4',t:'🏗️ สร้าง I',  d:'สร้าง 3 หลัง', tp:'build',tg:3,       rw:300,    xp:80},
+  {id:'q5',t:'🏗️ สร้าง II', d:'สร้าง 10 หลัง',tp:'build',tg:10,      rw:2000,   xp:300},
+  {id:'q6',t:'🏗️ สถาปนิก', d:'สร้าง 30 หลัง',tp:'build',tg:30,      rw:20000,  xp:800},
+  {id:'q7',t:'⭐ Lv.10',     d:'ถึงเลเวล 10',  tp:'level',tg:10,      rw:1000,   xp:100},
+  {id:'q8',t:'⭐ Lv.25',     d:'ถึงเลเวล 25',  tp:'level',tg:25,      rw:10000,  xp:400},
+  {id:'q9',t:'⭐ Lv.50',     d:'ถึงเลเวล 50',  tp:'level',tg:50,      rw:200000, xp:2000},
+  {id:'q10',t:'🏙️ โซน 2',  d:'ปลดล็อคเมืองใหญ่',tp:'zone',tg:1,   rw:5000,   xp:500},
+  {id:'q11',t:'🌆 โซน 3',   d:'ปลดล็อคมหานคร',tp:'zone', tg:2,      rw:100000, xp:2000},
+];
 
-const MAX_PER_ZONE=12;
+// ===== GAME STATE =====
+const G={
+  money:100, exp:0, level:1, cz:0,
+  totalEarned:0, totalBuilt:0, ips:0,
+  lastTick:Date.now(),
+  zones:[
+    {unlocked:true, buildings:[]},
+    {unlocked:false,buildings:[]},
+    {unlocked:false,buildings:[]},
+  ],
+  quests:QUESTS.map(q=>({...q,progress:0,claimed:false}))
+};
+const MAX=20;
 const fmt=n=>n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n).toString();
-const getIncome=(t,lv)=>Math.floor(t.incomeBase*Math.pow(1.35,lv-1));
-const getUpCost=(t,lv)=>Math.floor(t.baseCost*Math.pow(1.55,lv));
-const getBuyCost=(t,own)=>Math.floor(t.baseCost*Math.pow(1.4,own));
-function expNeeded(lv){return Math.floor(100*Math.pow(1.18,lv-1));}
-function calcIPS(){let s=0;G.zones.forEach(z=>z.buildings.forEach(b=>{const t=SHOP_TYPES.find(x=>x.id===b.type);if(t)s+=getIncome(t,b.level);}));return s;}
+const getInc=(t,lv)=>Math.floor(t.ib*Math.pow(1.35,lv-1));
+const getUpCost=(t,lv)=>Math.floor(t.bc*Math.pow(1.55,lv));
+const getBuyCost=(t,own)=>Math.floor(t.bc*Math.pow(1.4,own));
+const expNeeded=lv=>Math.floor(100*Math.pow(1.18,lv-1));
+const calcIPS=()=>{let s=0;G.zones.forEach(z=>z.buildings.forEach(b=>{const t=SHOPS.find(x=>x.id===b.id);if(t)s+=getInc(t,b.lv);}));return s;};
 
-function addExp(amt){
-  G.exp+=amt;
-  while(G.level<100){const need=expNeeded(G.level);if(G.exp>=need){G.exp-=need;G.level++;onLevelUp();}else break;}
+function addExp(a){
+  G.exp+=a;
+  while(G.level<100){
+    const n=expNeeded(G.level);
+    if(G.exp>=n){G.exp-=n;G.level++;onLevelUp();}
+    else break;
+  }
 }
 function onLevelUp(){
-  showNotif(`⭐ เลเวล ${G.level}!`);spawnSparkles();
-  ZONES.forEach((z,i)=>{if(G.level>=z.unlockLv&&!G.zones[i].unlocked){G.zones[i].unlocked=true;showNotif(`🗺️ ปลดล็อค ${z.name}!`);}});
+  showNotif(`⭐ เลเวล ${G.level}!`);doSparkles();
+  ZONES.forEach((z,i)=>{
+    if(G.level>=z.ulv&&!G.zones[i].unlocked){
+      G.zones[i].unlocked=true;
+      showNotif(`🗺️ ปลดล็อค ${z.nm}!`);
+    }
+  });
   updateZoneBar();updateQuests();scheduleSave();
 }
 
 function updateHUD(){
   document.getElementById('hMoney').textContent=fmt(G.money);
   document.getElementById('hLevel').textContent=G.level;
-  const need=G.level<100?expNeeded(G.level):1;
-  document.getElementById('expbar').style.width=Math.min(100,(G.exp/need)*100)+'%';
+  const n=G.level<100?expNeeded(G.level):1;
+  document.getElementById('expBar').style.width=Math.min(100,(G.exp/n)*100)+'%';
   G.ips=calcIPS();
-  document.getElementById('ips-badge').textContent=`+${fmt(G.ips)} 💰/วิ`;
+  document.getElementById('ipsBadge').textContent=`+${fmt(G.ips)}/วิ`;
 }
 
 function updateZoneBar(){
   ZONES.forEach((z,i)=>{
-    const btn=document.getElementById(`zbtn${i}`);
-    const unlocked=G.zones[i].unlocked;
-    btn.classList.toggle('locked',!unlocked);
-    btn.classList.toggle('active',G.currentZone===i);
-    btn.textContent=unlocked?z.name:`🔒 Lv.${z.unlockLv}`;
+    const b=document.getElementById(`z${i}`);
+    b.classList.toggle('lk',!G.zones[i].unlocked);
+    b.classList.toggle('act',G.cz===i);
+    b.textContent=G.zones[i].unlocked?z.nm.replace('🌿 ','🌿').replace('🏙️ ','🏙️').replace('🌆 ','🌆'):`🔒Lv${z.ulv}`;
   });
 }
 
-function switchZone(idx){
-  if(!G.zones[idx].unlocked){showNotif(`🔒 ต้องการเลเวล ${ZONES[idx].unlockLv}`);return;}
-  G.currentZone=idx;
-  const z=ZONES[idx];
-  document.getElementById('sky').style.background=z.sky;
-  document.getElementById('ground').style.background=z.ground;
-  document.getElementById('road').style.background=z.road;
+function switchZone(i){
+  if(!G.zones[i].unlocked){showNotif(`🔒 ต้องการ Lv.${ZONES[i].ulv}`);return;}
+  G.cz=i;
+  document.getElementById('sky').style.background=ZONES[i].sky;
+  document.getElementById('gnd').style.background=ZONES[i].gnd;
+  document.getElementById('road').style.background=ZONES[i].rd;
   updateZoneBar();renderBuildings();renderShop();
 }
 
-// UPGRADE POPUP
-let popupZone=-1,popupIdx=-1;
-function openUpgradePopup(zoneIdx,bIdx){
-  popupZone=zoneIdx;popupIdx=bIdx;
-  refreshUpgradePopup();
-  document.getElementById('upg-overlay').classList.add('show');
-}
-function refreshUpgradePopup(){
-  const zone=G.zones[popupZone];
-  const b=zone.buildings[popupIdx];
-  if(!b)return;
-  const type=SHOP_TYPES.find(t=>t.id===b.type);
-  const lv=b.level,isMax=lv>=type.maxLv;
-  const curInc=getIncome(type,lv);
-  const nxtInc=isMax?curInc:getIncome(type,lv+1);
-
-  document.getElementById('upg-emoji').textContent=type.emoji;
-  document.getElementById('upg-title').textContent=type.name;
-  document.getElementById('upg-zone').textContent=ZONES[popupZone].name+' • Lv.'+lv+'/'+type.maxLv;
-  document.getElementById('upg-sub').textContent=type.desc;
-
-  document.getElementById('upg-stat').innerHTML=`
-    <div class="upg-stat-box"><div class="sv">Lv.${lv}</div><div class="sl">เลเวลปัจจุบัน</div></div>
-    <div class="upg-stat-box"><div class="sv">+${fmt(curInc)}/s</div><div class="sl">รายได้ตอนนี้</div></div>
-    ${!isMax?`<div class="upg-stat-box"><div class="sv" style="color:#44BB44">+${fmt(nxtInc)}/s</div><div class="sl">หลังอัพ</div></div>`:''}
-  `;
-
-  document.getElementById('upg-max-badge').style.display=isMax?'block':'none';
-  const btns=document.getElementById('upg-btns');
-  btns.innerHTML='';
-  if(!isMax){
-    const levels=[1,5,10,25];
-    levels.forEach(n=>{
-      const targetLv=Math.min(lv+n,type.maxLv);
-      const actualN=targetLv-lv;
-      if(actualN<=0)return;
-      let totalCost=0;
-      for(let i=0;i<actualN;i++)totalCost+=getUpCost(type,lv+i);
-      const canAfford=G.money>=totalCost;
-      const btn=document.createElement('button');
-      btn.className='upg-btn';
-      btn.disabled=!canAfford;
-      btn.innerHTML=`+${actualN} เลเวล<br><span style="font-size:11px">${fmt(totalCost)}💰</span>`;
-      btn.onclick=()=>doUpgrade(actualN);
-      btns.appendChild(btn);
-    });
-  }
-}
-function doUpgrade(times){
-  const zone=G.zones[popupZone];const b=zone.buildings[popupIdx];
-  const type=SHOP_TYPES.find(t=>t.id===b.type);
-  let totalCost=0;
-  for(let i=0;i<times;i++){if(b.level>=type.maxLv)break;totalCost+=getUpCost(type,b.level+i);}
-  if(G.money<totalCost){showNotif('💰 เงินไม่พอ!');return;}
-  G.money-=totalCost;
-  const oldLv=b.level;
-  for(let i=0;i<times;i++){if(b.level<type.maxLv)b.level++;}
-  addExp((b.level-oldLv)*20+type.zone*15);
-  spawnSparkles();
-  showNotif(`⬆️ ${type.name} Lv.${b.level}!`);
-  renderBuildings();updateHUD();renderShop();
-  refreshUpgradePopup();scheduleSave();
-}
-function closeUpgradePopup(e){
-  if(e.target===document.getElementById('upg-overlay'))
-    document.getElementById('upg-overlay').classList.remove('show');
-}
-
+// ===== BUILDINGS =====
 function renderBuildings(){
-  const area=document.getElementById('city-area');area.innerHTML='';
-  const zone=G.zones[G.currentZone];
+  const inner=document.getElementById('cityInner');
+  inner.innerHTML='';
+  const zone=G.zones[G.cz];
+  const areaH=document.getElementById('cityScroll').clientHeight;
+
   zone.buildings.forEach((b,idx)=>{
-    const type=SHOP_TYPES.find(t=>t.id===b.type);if(!type)return;
-    const lv=b.level,h=60+lv*10,w=60+lv*3;
-    const slot=document.createElement('div');slot.className='bslot';
-    slot.onclick=()=>openUpgradePopup(G.currentZone,idx);
+    const t=SHOPS.find(x=>x.id===b.id);if(!t)return;
+    const lv=b.lv, isMax=lv>=t.mx;
+    // Cap building height so it fits in area
+    const maxH=Math.max(60, areaH-60);
+    const rawH=65+lv*11;
+    const h=Math.min(rawH, maxH);
+    const w=60+lv*3;
+    const uc=getUpCost(t,lv);
+    const canAfford=G.money>=uc;
 
-    const body=document.createElement('div');body.className='bbuilding';
-    body.style.cssText=`width:${w}px;height:${h}px;background:linear-gradient(170deg,${type.color}EE,${type.color}77);border:3px solid ${type.color};box-shadow:4px 4px 0 rgba(0,0,0,0.2),inset 0 2px 0 rgba(255,255,255,0.3);`;
-    const roof=document.createElement('div');roof.className='broof';roof.style.cssText=`background:${type.color};border:3px solid ${type.color};`;
+    const slot=document.createElement('div');
+    slot.className='bSlot';
+
+    // Building body
+    const body=document.createElement('div');
+    body.className='bBody';
+    body.style.cssText=`width:${w}px;height:${h}px;background:linear-gradient(170deg,${t.cl}EE,${t.cl}77);border:3px solid ${t.cl};box-shadow:4px 6px 0 rgba(0,0,0,0.25),inset 0 2px 0 rgba(255,255,255,0.3);`;
+
+    const roof=document.createElement('div');
+    roof.className='bRoof';
+    roof.style.cssText=`background:${t.cl};border:3px solid ${t.cl};`;
     body.appendChild(roof);
-    const wins=document.createElement('div');wins.className='bwins';
-    const wc=Math.min(2+Math.floor(lv/2),10);wins.style.gridTemplateColumns=`repeat(${Math.min(wc,2)},1fr)`;
-    for(let i=0;i<wc;i++){const w2=document.createElement('div');w2.className='bwin'+(Math.random()>0.35?' lit':'');wins.appendChild(w2);}
+
+    const wins=document.createElement('div');wins.className='bWins';
+    const wc=Math.min(2+Math.floor(lv/2),12);
+    wins.style.gridTemplateColumns=`repeat(${Math.min(wc,2)},1fr)`;
+    for(let i=0;i<wc;i++){
+      const w2=document.createElement('div');
+      w2.className='bWin'+(Math.random()>0.35?' lit':'');
+      wins.appendChild(w2);
+    }
     body.appendChild(wins);
-    const em=document.createElement('div');em.className='bemoji';em.textContent=type.emoji;body.appendChild(em);
+
+    const em=document.createElement('div');em.className='bEmoji';em.textContent=t.e;
+    body.appendChild(em);
     slot.appendChild(body);
-    const badge=document.createElement('div');badge.className='bbadge';badge.textContent=`+${fmt(getIncome(type,lv))}/s`;slot.appendChild(badge);
-    const label=document.createElement('div');label.className='blabel';label.innerHTML=`${type.name}<br>Lv.${lv}`;slot.appendChild(label);
-    const tap=document.createElement('div');tap.className='btap';tap.textContent='👆 แตะอัพเกรด';slot.appendChild(tap);
-    area.appendChild(slot);
+
+    // Income badge
+    const badge=document.createElement('div');badge.className='bBadge';
+    badge.textContent=`+${fmt(getInc(t,lv))}/s`;
+    slot.appendChild(badge);
+
+    // Label
+    const label=document.createElement('div');label.className='bLabel';
+    label.innerHTML=`${t.name}<br>Lv.${lv}`;
+    slot.appendChild(label);
+
+    // Upgrade button — always visible
+    const btn=document.createElement('button');
+    btn.dataset.zone=G.cz;
+    btn.dataset.idx=idx;
+    if(isMax){
+      btn.className='bUpBtn bMaxBtn';
+      btn.textContent='✨ MAX!';
+      btn.disabled=true;
+    } else {
+      btn.className='bUpBtn';
+      btn.textContent=`⬆️ ${fmt(uc)}💰`;
+      btn.disabled=!canAfford;
+      btn.onclick=()=>doUpgrade(G.cz,idx);
+    }
+    slot.appendChild(btn);
+    inner.appendChild(slot);
   });
-  if(zone.buildings.length<MAX_PER_ZONE){const e=document.createElement('div');e.className='bempty';e.textContent='+';area.appendChild(e);}
-}
 
-function renderShop(){
-  const grid=document.getElementById('shopgrid');grid.innerHTML='';
-  const zoneTypes=SHOP_TYPES.filter(t=>t.zone===G.currentZone);
-  const zone=G.zones[G.currentZone];
-  zoneTypes.forEach(type=>{
-    const locked=G.level<type.unlockLv;
-    const own=zone.buildings.filter(b=>b.type===type.id).length;
-    const cost=getBuyCost(type,own);
-    const maxed=zone.buildings.length>=MAX_PER_ZONE;
-    const canAfford=G.money>=cost;
-    const item=document.createElement('div');
-    if(locked)item.className='sitem locked-item';
-    else if(!canAfford||maxed)item.className='sitem cant';
-    else item.className='sitem';
-    item.innerHTML=`<div class="semoji">${type.emoji}</div><div class="sinfo"><div class="sname">${type.name}</div><div class="sdesc">${type.desc}</div>${locked?`<div class="slocked">🔒 Lv.${type.unlockLv}</div>`:''}</div><div class="sprice">${locked?'🔒':fmt(cost)+'💰'}</div>`;
-    if(!locked&&canAfford&&!maxed)item.onclick=()=>buyBuilding(type);
-    grid.appendChild(item);
-  });
-}
-
-function buyBuilding(type){
-  const zone=G.zones[G.currentZone];
-  const own=zone.buildings.filter(b=>b.type===type.id).length;
-  const cost=getBuyCost(type,own);
-  if(G.money<cost||zone.buildings.length>=MAX_PER_ZONE)return;
-  G.money-=cost;zone.buildings.push({type:type.id,level:1});
-  G.totalBuilt++;addExp(25+type.zone*15);updateQuests();
-  renderBuildings();renderShop();updateHUD();
-  startTruck(G.currentZone,zone.buildings.length-1);
-  showNotif(`🏗️ สร้าง ${type.name}!`);scheduleSave();
-}
-
-function startTruck(zoneIdx,bIdx){
-  const zone=G.zones[zoneIdx];const b=zone.buildings[bIdx];if(!b)return;
-  const type=SHOP_TYPES.find(t=>t.id===b.type);
-  function go(){
-    if(!G.zones[zoneIdx]?.buildings[bIdx])return;
-    if(zoneIdx!==G.currentZone){setTimeout(go,type.truckMs/Math.max(1,G.zones[zoneIdx].buildings[bIdx]?.level||1));return;}
-    const layer=document.getElementById('trucks');
-    const truck=document.createElement('div');truck.className='truck';truck.textContent=type.truck;
-    const dur=2.5+Math.random()*2;truck.style.animationDuration=dur+'s';truck.style.bottom=(5+Math.random()*25)+'px';
-    layer.appendChild(truck);
-    setTimeout(()=>{
-      const b2=G.zones[zoneIdx]?.buildings[bIdx];if(!b2)return;
-      const inc=getIncome(type,b2.level);G.money+=inc;G.totalEarned+=inc;addExp(1);updateQuests();
-      const coin=document.createElement('div');coin.className='fcoin';
-      coin.textContent=`+${fmt(inc)}💰`;coin.style.left=(30+Math.random()*40)+'%';coin.style.top='40%';
-      document.getElementById('game-wrap').appendChild(coin);setTimeout(()=>coin.remove(),1000);
-      updateHUD();renderShop();
-    },dur*450);
-    setTimeout(()=>truck.remove(),dur*1000+300);
-    const b3=G.zones[zoneIdx]?.buildings[bIdx];
-    if(b3)setTimeout(go,type.truckMs/Math.max(1,b3.level));
+  if(zone.buildings.length<MAX){
+    const e=document.createElement('div');e.className='bEmpty';e.textContent='+';
+    inner.appendChild(e);
   }
-  setTimeout(go,300+Math.random()*2500);
 }
 
+function refreshButtons(){
+  document.querySelectorAll('.bUpBtn:not(.bMaxBtn)').forEach(btn=>{
+    const zi=parseInt(btn.dataset.zone);
+    const bi=parseInt(btn.dataset.idx);
+    const b=G.zones[zi]?.buildings[bi];if(!b)return;
+    const t=SHOPS.find(x=>x.id===b.id);if(!t)return;
+    const uc=getUpCost(t,b.lv);
+    btn.disabled=G.money<uc;
+    btn.textContent=`⬆️ ${fmt(uc)}💰`;
+  });
+}
+
+function doUpgrade(zi,bi){
+  const b=G.zones[zi].buildings[bi];
+  const t=SHOPS.find(x=>x.id===b.id);
+  const uc=getUpCost(t,b.lv);
+  if(G.money<uc||b.lv>=t.mx){showNotif('💰 เงินไม่พอ!');return;}
+  G.money-=uc;b.lv++;
+  addExp(20+t.z*15);doSparkles();
+  showNotif(`⬆️ ${t.name} Lv.${b.lv}!`);
+  renderBuildings();updateHUD();renderShop();scheduleSave();
+}
+
+// ===== SHOP =====
+function renderShop(){
+  const g=document.getElementById('shopGrid');g.innerHTML='';
+  SHOPS.filter(t=>t.z===G.cz).forEach(t=>{
+    const locked=G.level<t.lv;
+    const own=G.zones[G.cz].buildings.filter(b=>b.id===t.id).length;
+    const cost=getBuyCost(t,own);
+    const full=G.zones[G.cz].buildings.length>=MAX;
+    const ca=G.money>=cost;
+    const item=document.createElement('div');
+    item.className=locked?'shopItem lockedItem':(!ca||full)?'shopItem cantBuy':'shopItem';
+    item.innerHTML=`<div class="shopEmoji">${t.e}</div><div style="flex:1;min-width:0"><div class="shopName">${t.name}</div><div class="shopDesc">${t.ds}</div>${locked?`<div class="shopLocked">🔒 Lv.${t.lv}</div>`:''}</div><div class="shopPrice">${locked?'🔒':fmt(cost)+'💰'}</div>`;
+    if(!locked&&ca&&!full)item.onclick=()=>buyBuilding(t);
+    g.appendChild(item);
+  });
+}
+
+function buyBuilding(t){
+  const zone=G.zones[G.cz];
+  const own=zone.buildings.filter(b=>b.id===t.id).length;
+  const cost=getBuyCost(t,own);
+  if(G.money<cost||zone.buildings.length>=MAX)return;
+  G.money-=cost;
+  zone.buildings.push({id:t.id,lv:1});
+  G.totalBuilt++;addExp(25+t.z*15);updateQuests();
+  renderBuildings();renderShop();updateHUD();
+  startTruck(G.cz,zone.buildings.length-1);
+  showNotif(`🏗️ ${t.name}!`);scheduleSave();
+}
+
+// ===== TRUCKS =====
+let truckCount=0;
+function startTruck(zi,bi){
+  const b=G.zones[zi]?.buildings[bi];if(!b)return;
+  const t=SHOPS.find(x=>x.id===b.id);if(!t)return;
+  function go(){
+    if(!G.zones[zi]?.buildings[bi])return;
+    const lv=G.zones[zi].buildings[bi]?.lv||1;
+    if(zi!==G.cz){
+      const r=getInc(t,lv);G.money+=r;G.totalEarned+=r;addExp(1);updateQuests();
+      setTimeout(go,t.ms/lv);return;
+    }
+    if(truckCount>=3){setTimeout(go,2000);return;}
+    truckCount++;
+    const layer=document.getElementById('truckLayer');
+    const tk=document.createElement('div');tk.className='truck';tk.textContent=t.tr;
+    const dur=3+Math.random()*2;
+    tk.style.cssText=`animation-duration:${dur}s;bottom:${4+Math.random()*18}px;`;
+    layer.appendChild(tk);
+    setTimeout(()=>{
+      const b2=G.zones[zi]?.buildings[bi];if(!b2)return;
+      const r=getInc(t,b2.lv);G.money+=r;G.totalEarned+=r;addExp(1);updateQuests();
+      const coin=document.createElement('div');coin.className='coinPop';
+      coin.textContent=`+${fmt(r)}💰`;
+      coin.style.cssText=`left:${25+Math.random()*50}%;top:36%;`;
+      document.body.appendChild(coin);
+      setTimeout(()=>coin.remove(),1000);
+      updateHUD();
+    },dur*450);
+    setTimeout(()=>{tk.remove();truckCount=Math.max(0,truckCount-1);},dur*1000+200);
+    setTimeout(go,t.ms/Math.max(1,G.zones[zi]?.buildings[bi]?.lv||1));
+  }
+  setTimeout(go,500+Math.random()*3000);
+}
+
+// ===== QUESTS =====
 function updateQuests(){
   G.quests.forEach(q=>{
     if(q.claimed)return;
-    if(q.type==='earn')q.progress=Math.min(q.target,G.totalEarned);
-    if(q.type==='build')q.progress=Math.min(q.target,G.totalBuilt);
-    if(q.type==='level')q.progress=Math.min(q.target,G.level);
-    if(q.type==='zone')q.progress=Math.min(q.target,G.zones.filter(z=>z.unlocked).length-1);
+    if(q.tp==='earn')  q.progress=Math.min(q.tg,G.totalEarned);
+    if(q.tp==='build') q.progress=Math.min(q.tg,G.totalBuilt);
+    if(q.tp==='level') q.progress=Math.min(q.tg,G.level);
+    if(q.tp==='zone')  q.progress=Math.min(q.tg,G.zones.filter(z=>z.unlocked).length-1);
   });
 }
 function renderQuests(){
   updateQuests();
-  const list=document.getElementById('questlist');list.innerHTML='';
+  const l=document.getElementById('questList');l.innerHTML='';
   G.quests.forEach(q=>{
-    const pct=Math.min(100,(q.progress/q.target)*100);
-    const done=q.progress>=q.target;
-    const div=document.createElement('div');div.className='qitem';
-    div.innerHTML=`<div class="qtitle">${q.claimed?'✅ ':''} ${q.title}</div><div class="qdesc">${q.desc} (${fmt(q.progress)}/${fmt(q.target)})</div><div class="qprog"><div class="qfill" style="width:${pct}%"></div></div><div class="qreward">🎁 ${fmt(q.reward)}💰 + ${q.expReward} EXP</div>${done&&!q.claimed?`<button class="qclaim" onclick="claimQuest('${q.id}')">รับรางวัล!</button>`:''}${q.claimed?'<div style="font-size:10px;color:#aaa;margin-top:3px">รับแล้ว ✓</div>':''}`;
-    list.appendChild(div);
+    const pct=Math.min(100,(q.progress/q.tg)*100);
+    const done=q.progress>=q.tg;
+    const d=document.createElement('div');d.className='questItem';
+    d.innerHTML=`
+      <div class="questTitle">${q.claimed?'✅':''} ${q.t}</div>
+      <div class="questDesc">${q.d} (${fmt(q.progress)}/${fmt(q.tg)})</div>
+      <div class="questBar"><div class="questFill" style="width:${pct}%"></div></div>
+      <div class="questReward">🎁 ${fmt(q.rw)}💰 + ${q.xp} EXP</div>
+      ${done&&!q.claimed?`<button class="questClaim" onclick="claimQuest('${q.id}')">รับรางวัล!</button>`:''}
+      ${q.claimed?'<div style="font-size:10px;color:#bbb;margin-top:2px">รับแล้ว ✓</div>':''}
+    `;
+    l.appendChild(d);
   });
 }
 function claimQuest(id){
-  const q=G.quests.find(x=>x.id===id);if(!q||q.claimed||q.progress<q.target)return;
-  q.claimed=true;G.money+=q.reward;addExp(q.expReward);
-  showNotif(`🎁 รับรางวัล ${fmt(q.reward)}💰!`);spawnSparkles();
+  const q=G.quests.find(x=>x.id===id);
+  if(!q||q.claimed||q.progress<q.tg)return;
+  q.claimed=true;G.money+=q.rw;addExp(q.xp);
+  showNotif(`🎁 ${fmt(q.rw)}💰!`);doSparkles();
   updateHUD();renderQuests();scheduleSave();
 }
 
+// ===== TABS & PANEL =====
+let panelOpen=true;
+function togglePanel(){
+  panelOpen=!panelOpen;
+  document.getElementById('panelWrap').className=panelOpen?'open':'closed';
+  document.getElementById('togBtn').textContent=panelOpen?'🔼':'🔽';
+}
 function switchTab(name,el){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(`panel-${name}`).classList.add('active');
-  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.tabBtn').forEach(t=>t.classList.remove('act'));
+  document.getElementById(`panel-${name}`).classList.add('act');
+  el.classList.add('act');
+  if(!panelOpen){panelOpen=true;document.getElementById('panelWrap').className='open';document.getElementById('togBtn').textContent='🔼';}
   if(name==='quest')renderQuests();
   if(name==='info')renderStats();
 }
 function renderStats(){
-  const totalB=G.zones.reduce((s,z)=>s+z.buildings.length,0);
-  document.getElementById('statsinfo').innerHTML=`🏙️ โซนที่ปลดล็อค: ${G.zones.filter(z=>z.unlocked).length}/3<br>🏗️ อาคารทั้งหมด: ${totalB}<br>💰 รายได้/วิ: ${fmt(G.ips)}<br>📊 รายได้สะสม: ${fmt(G.totalEarned)}<br>⭐ เลเวล: ${G.level}/100<br>📋 ภารกิจสำเร็จ: ${G.quests.filter(q=>q.claimed).length}/${G.quests.length}`;
+  const tb=G.zones.reduce((s,z)=>s+z.buildings.length,0);
+  document.getElementById('statsText').innerHTML=
+    `🏙️ โซนปลดล็อค: ${G.zones.filter(z=>z.unlocked).length}/3<br>`+
+    `🏗️ อาคารทั้งหมด: ${tb}<br>`+
+    `💰 รายได้/วิ: ${fmt(G.ips)}<br>`+
+    `📊 รายได้สะสม: ${fmt(G.totalEarned)}<br>`+
+    `⭐ เลเวล: ${G.level}/100<br>`+
+    `📋 ภารกิจสำเร็จ: ${G.quests.filter(q=>q.claimed).length}/${G.quests.length}`;
 }
 
-let notifT;
-function showNotif(text){document.querySelector('.notif')?.remove();if(notifT)clearTimeout(notifT);const n=document.createElement('div');n.className='notif';n.textContent=text;document.body.appendChild(n);notifT=setTimeout(()=>n.remove(),2100);}
-function spawnSparkles(){const cx=window.innerWidth/2,cy=window.innerHeight/2;for(let i=0;i<10;i++){const s=document.createElement('div');s.className='sparkle';const a=(i/10)*Math.PI*2,d=60+Math.random()*50;s.style.cssText=`left:${cx}px;top:${cy}px;--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;animation-delay:${Math.random()*0.3}s`;s.textContent=['⭐','✨','💫','🌟'][Math.floor(Math.random()*4)];document.body.appendChild(s);setTimeout(()=>s.remove(),1200);}}
+// ===== FX =====
+let notifTimer;
+function showNotif(tx){
+  document.querySelector('.notif')?.remove();
+  if(notifTimer)clearTimeout(notifTimer);
+  const n=document.createElement('div');n.className='notif';n.textContent=tx;
+  document.body.appendChild(n);
+  notifTimer=setTimeout(()=>n.remove(),2100);
+}
+function doSparkles(){
+  const cx=window.innerWidth/2,cy=window.innerHeight*0.42;
+  for(let i=0;i<8;i++){
+    const s=document.createElement('div');s.className='sparkle';
+    const a=(i/8)*Math.PI*2,d=45+Math.random()*45;
+    s.style.cssText=`left:${cx}px;top:${cy}px;--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;animation-delay:${Math.random()*0.2}s`;
+    s.textContent=['⭐','✨','💫','🌟'][Math.floor(Math.random()*4)];
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1100);
+  }
+}
 
-for(let i=0;i<6;i++){const c=document.createElement('div');c.className='cloud';const h=15+Math.random()*25,w=50+Math.random()*90;c.style.cssText=`width:${w}px;height:${h}px;top:${3+Math.random()*25}%;animation-duration:${20+Math.random()*25}s;animation-delay:${-Math.random()*25}s;`;document.getElementById('sky').appendChild(c);}
+// ===== CLOUDS =====
+for(let i=0;i<5;i++){
+  const c=document.createElement('div');c.className='cloud';
+  c.style.cssText=`width:${45+Math.random()*80}px;height:${12+Math.random()*20}px;top:${2+Math.random()*22}%;animation-duration:${22+Math.random()*20}s;animation-delay:${-Math.random()*22}s;`;
+  document.getElementById('sky').appendChild(c);
+}
 
+// ===== GAME TICK =====
 function gameTick(){
-  const now=Date.now(),dt=(now-G.lastTick)/1000;G.lastTick=now;
-  const passive=G.ips*dt*0.25;G.money+=passive;G.totalEarned+=passive;
-  updateHUD();renderShop();
+  const now=Date.now(),dt=(now-G.lastTick)/1000;
+  G.lastTick=now;
+  G.money+=G.ips*dt*0.25;
+  G.totalEarned+=G.ips*dt*0.25;
+  updateHUD();
+  refreshButtons(); // update button states every tick
 }
 
+// ===== START =====
 function startGame(){
   switchZone(0);
-  if(G.zones[0].buildings.length===0){G.zones[0].buildings.push({type:'farm',level:1});G.totalBuilt=1;}
+  if(G.zones[0].buildings.length===0){
+    G.zones[0].buildings.push({id:'farm',lv:1});
+    G.totalBuilt=1;
+  }
   G.zones.forEach((zone,zi)=>zone.buildings.forEach((_,bi)=>startTruck(zi,bi)));
   renderBuildings();renderShop();updateHUD();updateZoneBar();updateQuests();
   setInterval(gameTick,500);
-  setInterval(()=>{renderShop();},1500);
-  setInterval(saveGame,30000);
+  setInterval(renderShop,3000);
+  setInterval(()=>saveGame(false),30000);
 }
 </script>
 </body>
