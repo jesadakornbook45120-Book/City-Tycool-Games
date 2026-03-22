@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏙️ City Tycoon - สร้างเมืองรวย!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --sky: #87CEEB;
+    --grass: #5DBB63;
+    --road: #888;
+    --gold: #FFD700;
+    --orange: #FF7A00;
+    --red: #FF4444;
+    --green: #44BB44;
+    --blue: #4488FF;
+    --purple: #9966FF;
+    --panel: rgba(255,255,255,0.95);
+    --shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--sky);
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+
+  #game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Sky background */
+  #sky-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, #6BB8E8 0%, #ADE4FF 100%);
+    z-index: 0;
+  }
+
+  /* Clouds */
+  .cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50px;
+    opacity: 0.85;
+    animation: floatCloud linear infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+  }
+  @keyframes floatCloud {
+    from { transform: translateX(-200px); }
+    to { transform: translateX(110vw); }
+  }
+
+  /* Ground */
+  #ground {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 62%;
+    background: linear-gradient(180deg, #7BC47F 0%, #5DBB63 30%, #4CAF50 100%);
+    z-index: 1;
+  }
+
+  /* Road */
+  #road {
+    position: absolute;
+    bottom: 120px;
+    left: 0; right: 0;
+    height: 60px;
+    background: #7B7B7B;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+  }
+  #road::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, #FFD700 0px, #FFD700 40px, transparent 40px, transparent 80px);
+    transform: translateY(-50%);
+  }
+
+  /* City Area */
+  #city-area {
+    position: absolute;
+    bottom: 180px;
+    left: 0; right: 0;
+    height: 300px;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 20px;
+    gap: 12px;
+  }
+
+  /* Buildings */
+  .building-slot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .building-slot:hover { transform: scale(1.05); }
+  .building-slot:active { transform: scale(0.95); }
+
+  .building {
+    position: relative;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 4px;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .building-windows {
+    position: absolute;
+    top: 10px;
+    left: 6px; right: 6px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .window {
+    background: rgba(255,255,255,0.7);
+    border-radius: 2px;
+    height: 8px;
+    animation: blink 3s infinite;
+  }
+  .window.lit { background: #FFE066; }
+  @keyframes blink {
+    0%, 90%, 100% { opacity: 1; }
+    95% { opacity: 0.4; }
+  }
+
+  .building-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 11px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    margin-top: 4px;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .build-btn {
+    background: linear-gradient(135deg, #44BB44, #2E8B2E);
+    border: 3px solid #1A5C1A;
+    border-radius: 12px;
+    padding: 8px 14px;
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #1A5C1A;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .build-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #1A5C1A;
+  }
+  .build-btn:disabled {
+    background: linear-gradient(135deg, #999, #666);
+    border-color: #444;
+    box-shadow: 0 4px 0 #444;
+    cursor: not-allowed;
+  }
+
+  /* Trucks */
+  #trucks-layer {
+    position: absolute;
+    bottom: 120px;
+    left: 0; right: 0;
+    height: 60px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .truck {
+    position: absolute;
+    font-size: 28px;
+    bottom: 8px;
+    animation: driveTruck linear;
+    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+  }
+  @keyframes driveTruck {
+    0% { left: -80px; }
+    100% { left: 110%; }
+  }
+
+  /* Floating coins */
+  .float-coin {
+    position: absolute;
+    font-size: 20px;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+    z-index: 100;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-80px) scale(1.3); opacity: 0; }
+  }
+
+  /* HUD */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 10px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 100%);
+  }
+
+  .hud-box {
+    background: var(--panel);
+    border-radius: 20px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow);
+    border: 2px solid rgba(255,255,255,0.8);
+  }
+
+  .hud-icon { font-size: 20px; }
+  .hud-value {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: #333;
+    min-width: 60px;
+  }
+  .hud-label {
+    font-size: 11px;
+    color: #888;
+    font-weight: 700;
+  }
+
+  /* Bottom Panel */
+  #bottom-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    background: var(--panel);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  #bottom-panel h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .shop-item {
+    background: linear-gradient(135deg, #f8f9ff, #eef0ff);
+    border: 2px solid #dde0ff;
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .shop-item:hover { transform: scale(1.02); border-color: #9966FF; }
+  .shop-item:active { transform: scale(0.98); }
+  .shop-item.cant-afford { opacity: 0.5; cursor: not-allowed; }
+
+  .shop-emoji { font-size: 26px; }
+  .shop-info { flex: 1; }
+  .shop-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    color: #333;
+  }
+  .shop-desc { font-size: 10px; color: #888; }
+  .shop-price {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    color: var(--orange);
+  }
+
+  /* Level up notification */
+  .level-notif {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(135deg, #FFD700, #FF8C00);
+    border-radius: 20px;
+    padding: 20px 40px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    z-index: 200;
+    box-shadow: 0 10px 40px rgba(255,140,0,0.5);
+    animation: popIn 2s ease forwards;
+    text-align: center;
+    pointer-events: none;
+  }
+  @keyframes popIn {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; }
+    20% { transform: translate(-50%, -50%) scale(1.1) rotate(2deg); opacity: 1; }
+    30% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  }
+
+  /* Income per sec indicator */
+  #income-ticker {
+    position: fixed;
+    top: 70px;
+    right: 16px;
+    background: rgba(0,0,0,0.5);
+    color: #FFD700;
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    z-index: 50;
+  }
+
+  /* Stars around building on upgrade */
+  .sparkle {
+    position: absolute;
+    font-size: 16px;
+    pointer-events: none;
+    animation: sparkleAnim 0.8s ease-out forwards;
+    z-index: 100;
+  }
+  @keyframes sparkleAnim {
+    0% { transform: translate(0,0) scale(0); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="sky-bg"></div>
+  <div id="ground"></div>
+  <div id="road"></div>
+  <div id="city-area"></div>
+  <div id="trucks-layer"></div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-box">
+    <span class="hud-icon">💰</span>
+    <div>
+      <div class="hud-value" id="money-display">0</div>
+      <div class="hud-label">เหรียญ</div>
+    </div>
+  </div>
+  <div class="hud-box">
+    <span class="hud-icon">⭐</span>
+    <div>
+      <div class="hud-value" id="level-display">1</div>
+      <div class="hud-label">เลเวล</div>
+    </div>
+  </div>
+  <div class="hud-box" style="flex:1">
+    <span class="hud-icon">📈</span>
+    <div style="flex:1">
+      <div style="font-size:11px;color:#888;font-weight:700;">EXP สู่เลเวลถัดไป</div>
+      <div style="background:#eee;border-radius:10px;height:8px;margin-top:2px;overflow:hidden">
+        <div id="exp-bar" style="background:linear-gradient(90deg,#9966FF,#FF66CC);height:100%;width:0%;border-radius:10px;transition:width 0.3s"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="income-ticker">+0 💰/วิ</div>
+
+<!-- Bottom shop panel -->
+<div id="bottom-panel">
+  <h3>🏗️ สร้าง / อัพเกรด</h3>
+  <div class="shop-grid" id="shop-grid"></div>
+</div>
+
+<script>
+// ===== GAME STATE =====
+const state = {
+  money: 50,
+  exp: 0,
+  level: 1,
+  buildings: [], // {type, level, x, producing}
+  incomePerSec: 0,
+  lastTick: Date.now(),
+};
+
+// ===== BUILDING TYPES =====
+const BUILDING_TYPES = [
+  {
+    id: 'warehouse', name: '🏭 โกดัง', emoji: '🏭',
+    baseCost: 30, incomeBase: 2, color: '#FF8C42',
+    truckInterval: 4000, truckEmoji: '🚛',
+    desc: 'ผลิตสินค้าส่งออก',
+    maxLevel: 10,
+  },
+  {
+    id: 'shop', name: '🏪 ร้านค้า', emoji: '🏪',
+    baseCost: 80, incomeBase: 5, color: '#42A5F5',
+    truckInterval: 6000, truckEmoji: '🚐',
+    desc: 'ขายของให้ลูกค้า',
+    maxLevel: 10,
+  },
+  {
+    id: 'factory', name: '🏗️ โรงงาน', emoji: '🏗️',
+    baseCost: 200, incomeBase: 12, color: '#AB47BC',
+    truckInterval: 8000, truckEmoji: '🚚',
+    desc: 'ผลิตสินค้าหนัก',
+    maxLevel: 10,
+  },
+  {
+    id: 'bank', name: '🏦 ธนาคาร', emoji: '🏦',
+    baseCost: 500, incomeBase: 30, color: '#FFD700',
+    truckInterval: 10000, truckEmoji: '🚌',
+    desc: 'สร้างรายได้ passive',
+    maxLevel: 10,
+  },
+];
+
+const UPGRADE_COST_MULT = 1.6;
+const EXP_PER_LEVEL = [0, 100, 250, 500, 900, 1500, 2500, 4000, 6500, 10000, 16000];
+
+// ===== CLOUDS =====
+function spawnCloud() {
+  const cloud = document.createElement('div');
+  cloud.className = 'cloud';
+  const h = 20 + Math.random() * 30;
+  const w = 60 + Math.random() * 80;
+  cloud.style.cssText = `
+    width:${w}px; height:${h}px;
+    top:${5 + Math.random() * 20}%;
+    animation-duration:${25 + Math.random() * 30}s;
+    animation-delay:${-Math.random() * 30}s;
+  `;
+  cloud.innerHTML = `
+    <div style="position:absolute;background:white;border-radius:50%;
+      width:${w*0.6}px;height:${h*1.5}px;top:-${h*0.5}px;left:${w*0.2}px;"></div>
+    <div style="position:absolute;background:white;border-radius:50%;
+      width:${w*0.4}px;height:${h*1.2}px;top:-${h*0.3}px;left:${w*0.5}px;"></div>
+  `;
+  document.getElementById('sky-bg').appendChild(cloud);
+}
+for (let i = 0; i < 5; i++) spawnCloud();
+
+// ===== BUILDING RENDERING =====
+function getBuildingHeight(type, level) {
+  const base = { warehouse: 80, shop: 70, factory: 100, bank: 120 };
+  return (base[type.id] || 80) + level * 15;
+}
+
+function renderBuildings() {
+  const area = document.getElementById('city-area');
+  area.innerHTML = '';
+
+  state.buildings.forEach((b, idx) => {
+    const type = BUILDING_TYPES.find(t => t.id === b.type);
+    const h = getBuildingHeight(type, b.level);
+    const w = 70 + b.level * 4;
+
+    const slot = document.createElement('div');
+    slot.className = 'building-slot';
+    slot.id = `building-${idx}`;
+
+    // Building body
+    const body = document.createElement('div');
+    body.className = 'building';
+    body.style.cssText = `
+      width:${w}px; height:${h}px;
+      background: linear-gradient(170deg, ${type.color}EE, ${type.color}88);
+      border: 3px solid ${type.color};
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.3);
+    `;
+
+    // Roof
+    const roof = document.createElement('div');
+    roof.style.cssText = `
+      position:absolute; top:-18px; left:-4px; right:-4px;
+      height:22px;
+      background: ${type.color};
+      border-radius:6px 6px 0 0;
+      border: 3px solid ${type.color};
+    `;
+    body.appendChild(roof);
+
+    // Windows
+    const wins = document.createElement('div');
+    wins.className = 'building-windows';
+    const winCount = Math.min(2 + b.level, 8);
+    wins.style.gridTemplateColumns = `repeat(${Math.min(winCount, 2)}, 1fr)`;
+    for (let i = 0; i < winCount; i++) {
+      const w2 = document.createElement('div');
+      w2.className = 'window' + (Math.random() > 0.3 ? ' lit' : '');
+      wins.appendChild(w2);
+    }
+    body.appendChild(wins);
+
+    // Emoji on building
+    const emojiEl = document.createElement('div');
+    emojiEl.style.cssText = 'font-size:22px;position:relative;z-index:2;';
+    emojiEl.textContent = type.emoji;
+    body.appendChild(emojiEl);
+
+    slot.appendChild(body);
+
+    // Income badge
+    const badge = document.createElement('div');
+    badge.style.cssText = `
+      position:absolute; top:-10px; right:-8px;
+      background:#FFD700; border:2px solid #FF8C00;
+      border-radius:10px; padding:1px 6px;
+      font-size:10px; font-weight:800; color:#333;
+      font-family:'Fredoka One',cursive;
+    `;
+    badge.textContent = `+${getIncome(type, b.level)}/s`;
+    slot.appendChild(badge);
+
+    // Label
+    const label = document.createElement('div');
+    label.className = 'building-label';
+    label.innerHTML = `${type.name}<br>Lv.${b.level}`;
+    slot.appendChild(label);
+
+    // Upgrade btn
+    const upgCost = getUpgradeCost(type, b.level);
+    const canUpgrade = b.level < type.maxLevel;
+    if (canUpgrade) {
+      const btn = document.createElement('button');
+      btn.className = 'build-btn';
+      btn.style.marginTop = '4px';
+      btn.textContent = `⬆️ ${formatNum(upgCost)}💰`;
+      btn.disabled = state.money < upgCost;
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        upgradeBuilding(idx);
+      };
+      slot.appendChild(btn);
+    } else {
+      const maxLabel = document.createElement('div');
+      maxLabel.style.cssText = 'font-family:"Fredoka One",cursive;font-size:11px;color:#FFD700;margin-top:4px;';
+      maxLabel.textContent = '✨ MAX!';
+      slot.appendChild(maxLabel);
+    }
+
+    area.appendChild(slot);
+  });
+
+  // Empty slots for new buildings (max 6)
+  if (state.buildings.length < 6) {
+    const empty = document.createElement('div');
+    empty.style.cssText = `
+      width:70px; height:80px;
+      border: 3px dashed #aaa;
+      border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:30px; opacity:0.4;
+      align-self:flex-end;
+    `;
+    empty.textContent = '+';
+    area.appendChild(empty);
+  }
+}
+
+// ===== SHOP =====
+function renderShop() {
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = '';
+
+  BUILDING_TYPES.forEach(type => {
+    const ownCount = state.buildings.filter(b => b.type === type.id).length;
+    const cost = Math.floor(type.baseCost * Math.pow(1.5, ownCount));
+    const canAfford = state.money >= cost;
+    const maxBuildings = state.buildings.length >= 6;
+
+    const item = document.createElement('div');
+    item.className = 'shop-item' + (!canAfford || maxBuildings ? ' cant-afford' : '');
+    item.innerHTML = `
+      <div class="shop-emoji">${type.emoji}</div>
+      <div class="shop-info">
+        <div class="shop-name">${type.name}</div>
+        <div class="shop-desc">${type.desc}</div>
+      </div>
+      <div class="shop-price">${formatNum(cost)}💰</div>
+    `;
+    item.onclick = () => {
+      if (canAfford && !maxBuildings) buyBuilding(type);
+    };
+    grid.appendChild(item);
+  });
+}
+
+// ===== GAME LOGIC =====
+function getIncome(type, level) {
+  return Math.floor(type.incomeBase * Math.pow(1.4, level - 1));
+}
+
+function getUpgradeCost(type, level) {
+  return Math.floor(type.baseCost * Math.pow(UPGRADE_COST_MULT, level));
+}
+
+function calcIncomePerSec() {
+  return state.buildings.reduce((sum, b) => {
+    const type = BUILDING_TYPES.find(t => t.id === b.type);
+    return sum + getIncome(type, b.level);
+  }, 0);
+}
+
+function buyBuilding(type) {
+  const ownCount = state.buildings.filter(b => b.type === type.id).length;
+  const cost = Math.floor(type.baseCost * Math.pow(1.5, ownCount));
+  if (state.money < cost || state.buildings.length >= 6) return;
+  state.money -= cost;
+  state.buildings.push({ type: type.id, level: 1 });
+  addExp(20);
+  spawnSparkles(null, '🌟');
+  renderBuildings();
+  renderShop();
+  updateHUD();
+  startBuildingTruck(state.buildings.length - 1);
+  showLevelNotif(`🏗️ สร้าง ${type.name} แล้ว!`);
+}
+
+function upgradeBuilding(idx) {
+  const b = state.buildings[idx];
+  const type = BUILDING_TYPES.find(t => t.id === b.type);
+  const cost = getUpgradeCost(type, b.level);
+  if (state.money < cost || b.level >= type.maxLevel) return;
+  state.money -= cost;
+  b.level++;
+  addExp(30 + b.level * 10);
+  const el = document.getElementById(`building-${idx}`);
+  if (el) spawnSparklesAt(el);
+  renderBuildings();
+  renderShop();
+  updateHUD();
+  showLevelNotif(`⬆️ ${type.name} Lv.${b.level}!`);
+}
+
+function addExp(amount) {
+  state.exp += amount;
+  const needed = EXP_PER_LEVEL[state.level] || 99999;
+  if (state.exp >= needed && state.level < 10) {
+    state.level++;
+    state.exp -= needed;
+    showLevelNotif(`🎉 เลเวล ${state.level}! ยอดเยี่ยม!`);
+  }
+}
+
+function formatNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return Math.floor(n).toString();
+}
+
+function updateHUD() {
+  document.getElementById('money-display').textContent = formatNum(state.money);
+  document.getElementById('level-display').textContent = state.level;
+  const needed = EXP_PER_LEVEL[state.level] || 1;
+  document.getElementById('exp-bar').style.width = Math.min(100, (state.exp / needed) * 100) + '%';
+  state.incomePerSec = calcIncomePerSec();
+  document.getElementById('income-ticker').textContent = `+${formatNum(state.incomePerSec)} 💰/วิ`;
+}
+
+// ===== TRUCKS =====
+function startBuildingTruck(idx) {
+  const b = state.buildings[idx];
+  const type = BUILDING_TYPES.find(t => t.id === b.type);
+  
+  function sendTruck() {
+    const layer = document.getElementById('trucks-layer');
+    const truck = document.createElement('div');
+    truck.className = 'truck';
+    truck.textContent = type.truckEmoji;
+    const dur = 3 + Math.random() * 2;
+    truck.style.animationDuration = dur + 's';
+    truck.style.bottom = (8 + Math.random() * 20) + 'px';
+    layer.appendChild(truck);
+
+    // Earn money when truck passes midway
+    setTimeout(() => {
+      const income = getIncome(type, state.buildings[idx]?.level || 1);
+      state.money += income;
+      addExp(2);
+      // Float coin
+      const coin = document.createElement('div');
+      coin.className = 'float-coin';
+      coin.textContent = `+${income}💰`;
+      coin.style.left = '45%';
+      coin.style.top = '45%';
+      document.getElementById('game-container').appendChild(coin);
+      setTimeout(() => coin.remove(), 1000);
+      updateHUD();
+      renderShop();
+      renderBuildings(); // refresh upgrade buttons
+    }, dur * 500);
+
+    setTimeout(() => truck.remove(), dur * 1000 + 200);
+
+    // Schedule next truck
+    if (state.buildings[idx]) {
+      const interval = type.truckInterval / state.buildings[idx].level;
+      setTimeout(sendTruck, interval);
+    }
+  }
+
+  // Initial delay
+  setTimeout(sendTruck, 500 + Math.random() * 2000);
+}
+
+// ===== SPARKLES =====
+function spawnSparkles(el, emoji) {
+  const container = document.getElementById('game-container');
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    const angle = (i / 8) * Math.PI * 2;
+    const dist = 60 + Math.random() * 40;
+    s.style.cssText = `
+      left:${cx}px; top:${cy}px;
+      --tx:${Math.cos(angle)*dist}px;
+      --ty:${Math.sin(angle)*dist}px;
+    `;
+    s.textContent = ['⭐','✨','💫','🌟'][Math.floor(Math.random()*4)];
+    container.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  }
+}
+
+function spawnSparklesAt(el) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const container = document.getElementById('game-container');
+  for (let i = 0; i < 6; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    const angle = (i / 6) * Math.PI * 2;
+    const dist = 50 + Math.random() * 30;
+    s.style.cssText = `
+      left:${cx}px; top:${cy}px;
+      --tx:${Math.cos(angle)*dist}px;
+      --ty:${Math.sin(angle)*dist}px;
+      animation-duration:0.8s;
+    `;
+    s.textContent = ['⭐','✨','💫'][Math.floor(Math.random()*3)];
+    container.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  }
+}
+
+// ===== NOTIFICATIONS =====
+let notifTimeout;
+function showLevelNotif(text) {
+  const old = document.querySelector('.level-notif');
+  if (old) old.remove();
+  if (notifTimeout) clearTimeout(notifTimeout);
+  
+  const notif = document.createElement('div');
+  notif.className = 'level-notif';
+  notif.textContent = text;
+  document.body.appendChild(notif);
+  notifTimeout = setTimeout(() => notif.remove(), 2000);
+}
+
+// ===== PASSIVE INCOME TICK =====
+function gameTick() {
+  const now = Date.now();
+  const dt = (now - state.lastTick) / 1000;
+  state.lastTick = now;
+  // Passive income (smaller amount per tick)
+  const passive = state.incomePerSec * dt * 0.3;
+  state.money += passive;
+  updateHUD();
+  renderShop();
+}
+
+// ===== INIT =====
+function init() {
+  // Start with first warehouse
+  state.buildings.push({ type: 'warehouse', level: 1 });
+  startBuildingTruck(0);
+  renderBuildings();
+  renderShop();
+  updateHUD();
+  
+  // Game loop
+  setInterval(gameTick, 500);
+  // Re-render shop every second to update prices
+  setInterval(() => renderShop(), 1000);
+}
+
+init();
+</script>
+</body>
+</html>
